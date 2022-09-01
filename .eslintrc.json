@@ -1,0 +1,55 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "react-app",
+    "airbnb/whitespace",
+    "airbnb/hooks",
+    "prettier",
+    "plugin:react/jsx-runtime"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["react"],
+  "rules": {
+    // disabled or reduced
+    "no-restricted-syntax": "off",
+    "no-plusplus": "off",
+    "func-names": "off",
+    "no-continue": "off",
+    "no-param-reassign": ["warn", { "props": false }],
+    "consistent-return": "off",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^e$|^_", "varsIgnorePattern": "^e$|^_" }],
+    "react/react-in-jsx-scope": "off",
+
+    "react/prop-types": "off",
+    "react/jsx-props-no-spreading": "off",
+
+    // prettier compat
+    "arrow-body-style": "off",
+    "prefer-arrow-callback": "off",
+    "id-length": [
+      "warn",
+      {
+        "exceptions": [
+          // counters and comparisons
+          "i",
+          "j",
+          "a",
+          "b",
+          // events and errors
+          "e",
+          // unused arguments
+          "_"
+        ]
+      }
+    ]
+  }
+}
