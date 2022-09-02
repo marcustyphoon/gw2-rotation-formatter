@@ -95,6 +95,7 @@ function RotationDisplay({ rotation, splitAutoChains = true, showInstantsAsInsta
 function App() {
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState('waiting...');
+  const [dpsReportData, setDpsReportData] = useState(undefined);
 
   const [nameLengthPref, setNameLengthPref] = useState(7);
   const [includeInstantsPref, setIncludeInstantsPref] = useState(false);
@@ -117,214 +118,15 @@ function App() {
           // eslint-disable-next-line no-console
           console.info('loading data from dps.report...');
           const response = await fetch(`https://dps.report/getJson?permalink=${permalink}`);
-          const dpsReportData = await response.json();
+          const receivedData = await response.json();
           // eslint-disable-next-line no-console
-          console.info('got data from dps.report: ', dpsReportData);
+          console.info('got data from dps.report: ', receivedData);
 
-          if (dpsReportData.error || !Array.isArray(dpsReportData?.players)) {
-            setStatus(JSON.stringify(dpsReportData, null, 2));
+          if (receivedData.error || !Array.isArray(receivedData?.players)) {
+            setStatus(JSON.stringify(receivedData, null, 2));
             return;
           }
-          const playerData = dpsReportData.players.find(
-            (player) => player.name === dpsReportData.recordedBy,
-          );
-          if (!playerData) {
-            setStatus('no player data!');
-            return;
-          }
-
-          /**
-           * @typedef eiSkillCastEntry
-           * @type {object}
-           * @property {number} castTime
-           * @property {number} duration
-           * @property {number} timeGained
-           * @property {number} quickness
-           */
-          /**
-           * @typedef eiSkillEntry
-           * @type {object}
-           * @property {number} id
-           * @property {eiSkillCastEntry[]} skills
-           */
-          /** @type {eiSkillEntry[]} */
-          const eiSkillDataEntries = playerData.rotation;
-
-          /**
-           * @typedef eiSkillMapEntry
-           * @type {object}
-           * @property {string} name
-           * @property {boolean} autoAttack
-           * @property {boolean} isSwap
-           * @property {boolean} canCrit
-           * @property {string} icon
-           */
-          /** @type {Object.<string, eiSkillMapEntry>} */
-          const eiSkillMap = dpsReportData.skillMap;
-
-          /**
-           * @typedef rawSkillCast
-           * @type {object}
-           * @property {number} id
-           * @property {number} castTime
-           * @property {boolean} instant
-           * @property {boolean} cancelled
-           */
-
-          /** @type {rawSkillCast[]} */
-          const validRawSkillCasts = eiSkillDataEntries
-            .flatMap(({ id, skills }) => {
-              return skills.map(({ castTime, duration, timeGained }) => {
-                return {
-                  id,
-                  castTime,
-                  instant: duration === 0,
-                  cancelled: timeGained < 0,
-                };
-              });
-            })
-            .filter(({ id, cancelled }) => {
-              const { autoAttack } = eiSkillMap[`s${id}`];
-              return cancelled === false || (includeCancelledPref && autoAttack === false);
-            })
-            .filter(({ id }) => skillBlacklist.includes(id) === false)
-            .sort((a, b) => a.castTime - b.castTime);
-
-          /**
-           * @typedef skillTypeDictionaryEntry
-           * @type {object}
-           * @property {number} id
-           * @property {Set} idsSet
-           * @property {boolean} isSwap
-           * @property {boolean} autoAttack
-           * @property {boolean} instant
-           * @property {string} shortName
-           */
-
-          /** @type {Object.<number, skillTypeDictionaryEntry>} */
-          const skillTypeDictionary = {};
-          let autoAttackTypeCounter = 1;
-          validRawSkillCasts.forEach(({ id, instant }) => {
-            if (skillTypeDictionary[id]) return;
-
-            // eslint-disable-next-line no-unused-vars
-            const { name, autoAttack, isSwap, canCrit, icon } = eiSkillMap[`s${id}`];
-
-            let shortName = '???';
-            if (autoAttack) {
-              shortName = `auto${autoAttackTypeCounter++}`;
-            } else {
-              shortName = name
-                .replaceAll(':', '')
-                .replaceAll('"', '')
-                .replaceAll("'", '')
-                .replaceAll('!', '')
-                .split(' ')
-                .filter((str) => str.substring(0, 1) === str.substring(0, 1).toUpperCase())
-                .map((str) => str.substring(0, nameLengthPref))
-                .join('');
-            }
-
-            const hasDuplicateShortName = (nameToTest) =>
-              Object.values(skillTypeDictionary).filter(
-                ({ shortName: entryShortName }) => entryShortName === nameToTest,
-              ).length;
-
-            if (hasDuplicateShortName(shortName)) {
-              let count = 2;
-              while (hasDuplicateShortName(`${shortName}${count}`)) {
-                count++;
-              }
-              shortName = `${shortName}${count}`;
-            }
-
-            skillTypeDictionary[id] = {
-              id,
-              idsSet: new Set([id]),
-              isSwap,
-              autoAttack,
-              instant,
-              shortName,
-            };
-          });
-          setSkillDictionary(skillTypeDictionary);
-
-          /**
-           * @typedef skillCast
-           * @type {object}
-           * @property {number} id
-           * @property {skillTypeDictionaryEntry?} data
-           * @property {number?} castTime
-           * @property {boolean?} instant
-           * @property {boolean?} cancelled
-           * @property {number?} count
-           */
-
-          /** @type {skillCast[]} */
-          const skillCasts = validRawSkillCasts.map(({ id, ...rest }) => ({
-            id,
-            ...rest,
-            data: skillTypeDictionary[id],
-          }));
-
-          /** @type {skillCast[][]} */
-          const skillSequences = skillCasts
-            .reduce(
-              (prev, cur) => {
-                if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
-                  prev.push([]);
-                } else {
-                  prev.at(-1).push(cur);
-                }
-                return prev;
-              },
-              [[]],
-            )
-            .filter((skillSequence) => skillSequence.length);
-
-          const rotation = skillSequences.map((skillSequence, i) => ({
-            label: String(i),
-            skillSequence,
-          }));
-
-          setRotationUncombined(rotation);
-
-          /** @type {skillCast[][]} */
-          const combinedSkillSequences = skillSequences.map((skillSequence) =>
-            skillSequence
-              .map((skillCast) => ({ ...skillCast, count: 1 }))
-              .filter(({ instant }) => !instant || includeInstantsPref)
-              .reduce((prev, cur) => {
-                if (cur.data.autoAttack && prev.at(-1)?.data.autoAttack) {
-                  prev.at(-1).count += 1;
-                  prev.at(-1).data.idsSet.add(cur.id);
-                } else {
-                  prev.push(cur);
-                }
-                return prev;
-              }, []),
-          );
-
-          const rotationCombined = combinedSkillSequences
-            .map((skillSequence, i) => ({
-              label: String(i),
-              skillSequence,
-            }))
-            .filter(({ skillSequence }) => skillSequence.length);
-
-          const serializedRotation = rotationCombined
-            .map(
-              ({ skillSequence, label }) =>
-                `${label}: ` +
-                skillSequence
-                  .map(({ count, data }) => (count > 1 ? `${count}x ` : '') + data.shortName)
-                  .join(', '),
-            )
-            .join('\n\n');
-
-          setSerializedLogRotation(serializedRotation);
-
-          setStatus('loaded rotation');
+          setDpsReportData(receivedData);
         } catch (e) {
           // eslint-disable-next-line no-console
           console.error(e);
@@ -333,7 +135,218 @@ function App() {
       }
     }
     fetchData();
-  }, [url, nameLengthPref, includeInstantsPref, includeCancelledPref]);
+  }, [url]);
+
+  useEffect(() => {
+    if (dpsReportData) {
+      try {
+        const playerData = dpsReportData.players.find(
+          (player) => player.name === dpsReportData.recordedBy,
+        );
+        if (!playerData) {
+          setStatus('no player data!');
+          return;
+        }
+
+        /**
+         * @typedef eiSkillCastEntry
+         * @type {object}
+         * @property {number} castTime
+         * @property {number} duration
+         * @property {number} timeGained
+         * @property {number} quickness
+         */
+        /**
+         * @typedef eiSkillEntry
+         * @type {object}
+         * @property {number} id
+         * @property {eiSkillCastEntry[]} skills
+         */
+        /** @type {eiSkillEntry[]} */
+        const eiSkillDataEntries = playerData.rotation;
+
+        /**
+         * @typedef eiSkillMapEntry
+         * @type {object}
+         * @property {string} name
+         * @property {boolean} autoAttack
+         * @property {boolean} isSwap
+         * @property {boolean} canCrit
+         * @property {string} icon
+         */
+        /** @type {Object.<string, eiSkillMapEntry>} */
+        const eiSkillMap = dpsReportData.skillMap;
+
+        /**
+         * @typedef rawSkillCast
+         * @type {object}
+         * @property {number} id
+         * @property {number} castTime
+         * @property {boolean} instant
+         * @property {boolean} cancelled
+         */
+
+        /** @type {rawSkillCast[]} */
+        const validRawSkillCasts = eiSkillDataEntries
+          .flatMap(({ id, skills }) => {
+            return skills.map(({ castTime, duration, timeGained }) => {
+              return {
+                id,
+                castTime,
+                instant: duration === 0,
+                cancelled: timeGained < 0,
+              };
+            });
+          })
+          .filter(({ id, cancelled }) => {
+            const { autoAttack } = eiSkillMap[`s${id}`];
+            return cancelled === false || (includeCancelledPref && autoAttack === false);
+          })
+          .filter(({ id }) => skillBlacklist.includes(id) === false)
+          .sort((a, b) => a.castTime - b.castTime);
+
+        /**
+         * @typedef skillTypeDictionaryEntry
+         * @type {object}
+         * @property {number} id
+         * @property {Set} idsSet
+         * @property {boolean} isSwap
+         * @property {boolean} autoAttack
+         * @property {boolean} instant
+         * @property {string} shortName
+         */
+
+        /** @type {Object.<number, skillTypeDictionaryEntry>} */
+        const skillTypeDictionary = {};
+        let autoAttackTypeCounter = 1;
+        validRawSkillCasts.forEach(({ id, instant }) => {
+          if (skillTypeDictionary[id]) return;
+
+          // eslint-disable-next-line no-unused-vars
+          const { name, autoAttack, isSwap, canCrit, icon } = eiSkillMap[`s${id}`];
+
+          let shortName = '???';
+          if (autoAttack) {
+            shortName = `auto${autoAttackTypeCounter++}`;
+          } else {
+            shortName = name
+              .replaceAll(':', '')
+              .replaceAll('"', '')
+              .replaceAll("'", '')
+              .replaceAll('!', '')
+              .split(' ')
+              .filter((str) => str.substring(0, 1) === str.substring(0, 1).toUpperCase())
+              .map((str) => str.substring(0, nameLengthPref))
+              .join('');
+          }
+
+          const hasDuplicateShortName = (nameToTest) =>
+            Object.values(skillTypeDictionary).filter(
+              ({ shortName: entryShortName }) => entryShortName === nameToTest,
+            ).length;
+
+          if (hasDuplicateShortName(shortName)) {
+            let count = 2;
+            while (hasDuplicateShortName(`${shortName}${count}`)) {
+              count++;
+            }
+            shortName = `${shortName}${count}`;
+          }
+
+          skillTypeDictionary[id] = {
+            id,
+            idsSet: new Set([id]),
+            isSwap,
+            autoAttack,
+            instant,
+            shortName,
+          };
+        });
+        setSkillDictionary(skillTypeDictionary);
+
+        /**
+         * @typedef skillCast
+         * @type {object}
+         * @property {number} id
+         * @property {skillTypeDictionaryEntry?} data
+         * @property {number?} castTime
+         * @property {boolean?} instant
+         * @property {boolean?} cancelled
+         * @property {number?} count
+         */
+
+        /** @type {skillCast[]} */
+        const skillCasts = validRawSkillCasts.map(({ id, ...rest }) => ({
+          id,
+          ...rest,
+          data: skillTypeDictionary[id],
+        }));
+
+        /** @type {skillCast[][]} */
+        const skillSequences = skillCasts
+          .reduce(
+            (prev, cur) => {
+              if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
+                prev.push([]);
+              } else {
+                prev.at(-1).push(cur);
+              }
+              return prev;
+            },
+            [[]],
+          )
+          .filter((skillSequence) => skillSequence.length);
+
+        const rotation = skillSequences.map((skillSequence, i) => ({
+          label: String(i),
+          skillSequence,
+        }));
+
+        setRotationUncombined(rotation);
+
+        /** @type {skillCast[][]} */
+        const combinedSkillSequences = skillSequences.map((skillSequence) =>
+          skillSequence
+            .map((skillCast) => ({ ...skillCast, count: 1 }))
+            .filter(({ instant }) => !instant || includeInstantsPref)
+            .reduce((prev, cur) => {
+              if (cur.data.autoAttack && prev.at(-1)?.data.autoAttack) {
+                prev.at(-1).count += 1;
+                prev.at(-1).data.idsSet.add(cur.id);
+              } else {
+                prev.push(cur);
+              }
+              return prev;
+            }, []),
+        );
+
+        const rotationCombined = combinedSkillSequences
+          .map((skillSequence, i) => ({
+            label: String(i),
+            skillSequence,
+          }))
+          .filter(({ skillSequence }) => skillSequence.length);
+
+        const serializedRotation = rotationCombined
+          .map(
+            ({ skillSequence, label }) =>
+              `${label}: ` +
+              skillSequence
+                .map(({ count, data }) => (count > 1 ? `${count}x ` : '') + data.shortName)
+                .join(', '),
+          )
+          .join('\n\n');
+
+        setSerializedLogRotation(serializedRotation);
+
+        setStatus('loaded rotation');
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        setStatus(String(e));
+      }
+    }
+  }, [dpsReportData, includeCancelledPref, includeInstantsPref, nameLengthPref]);
 
   let parsedTextBoxRotation = [];
 
