@@ -101,6 +101,7 @@ function App() {
   const [includeInstantsPref, setIncludeInstantsPref] = useState(false);
   const [includeCancelledPref, setIncludeCancelledPref] = useState(true);
   const [splitAutoChainsPref, setSplitAutoChainsPref] = useState(false);
+  const [noSwapsPref, setNoSwapsPref] = useState(false);
 
   const [skillDictionary, setSkillDictionary] = useState(new Map());
   const [rotationUncombined, setRotationUncombined] = useState([]);
@@ -223,7 +224,9 @@ function App() {
           if (skillTypeDictionary[id]) return;
 
           // eslint-disable-next-line no-unused-vars
-          const { name, autoAttack, isSwap, canCrit, icon } = eiSkillMap[`s${id}`];
+          const { name, autoAttack, isSwap: realIsSwap, canCrit, icon } = eiSkillMap[`s${id}`];
+
+          const isSwap = noSwapsPref ? false : realIsSwap;
 
           let shortName = '???';
           if (autoAttack) {
@@ -346,7 +349,7 @@ function App() {
         setStatus(String(e));
       }
     }
-  }, [dpsReportData, includeCancelledPref, includeInstantsPref, nameLengthPref]);
+  }, [dpsReportData, includeCancelledPref, includeInstantsPref, nameLengthPref, noSwapsPref]);
 
   let parsedTextBoxRotation = [];
 
@@ -507,6 +510,16 @@ function App() {
             checked={splitAutoChainsPref}
             onChange={(e) => {
               setSplitAutoChainsPref(e.target.checked);
+            }}
+          />
+        </label>
+        <label>
+          ignore legend/attunement swaps:{' '}
+          <input
+            type="checkbox"
+            checked={noSwapsPref}
+            onChange={(e) => {
+              setNoSwapsPref(e.target.checked);
             }}
           />
         </label>
