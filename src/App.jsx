@@ -504,7 +504,7 @@ function App() {
           />
         </label>
         <label>
-          count auto chains instead of autos :{' '}
+          count auto chains instead of autos (buggy):{' '}
           <input
             type="checkbox"
             checked={splitAutoChainsPref}
