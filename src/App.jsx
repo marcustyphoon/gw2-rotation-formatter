@@ -20,7 +20,7 @@ const skillBlacklist = [
 
 const WEAPON_SWAP = -2;
 
-function RotationDisplay({ skillCasts, showInstantsAsInstant = true }) {
+function RotationDisplay({ rotation, showInstantsAsInstant = true }) {
   return (
     <div
       style={{
@@ -31,7 +31,7 @@ function RotationDisplay({ skillCasts, showInstantsAsInstant = true }) {
         fontSize: '25px',
       }}
     >
-      {skillCasts.map(({ data, label }, rowIndex) => (
+      {rotation.map(({ skillSequence, label }, rowIndex) => (
         <div
           style={{
             display: 'flex',
@@ -42,40 +42,49 @@ function RotationDisplay({ skillCasts, showInstantsAsInstant = true }) {
           key={rowIndex}
         >
           {label}:
-          {data.map(({ id, isSwap, autoAttack, duration, cancelled, count = 1 }, skillIndex) => {
-            let content = '';
-            const cancelledStyle = cancelled ? { border: '2px solid red' } : {};
+          {skillSequence.map(
+            (
+              { id, cancelled, count, data: { idsSet, isSwap, autoAttack, instant } },
+              skillIndex,
+            ) => {
+              let content = '';
+              const cancelledStyle = cancelled ? { border: '2px solid red' } : {};
 
-            if (isSwap || id === WEAPON_SWAP) {
-              content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
-            } else if (duration === 0 && showInstantsAsInstant) {
-              content = (
-                <div style={{ width: 0 }}>
-                  <div
-                    style={{
-                      position: 'relative',
-                      top: '20px',
-                      fontSize: autoAttack ? '0.7em' : '1em',
-                    }}
-                  >
-                    <Skill id={id} disableText />
+              if (isSwap || id === WEAPON_SWAP) {
+                content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
+              } else if (instant && showInstantsAsInstant) {
+                content = (skillId) => (
+                  <div style={{ width: 0 }}>
+                    <div
+                      style={{
+                        position: 'relative',
+                        top: '20px',
+                        fontSize: autoAttack ? '0.7em' : '1em',
+                      }}
+                    >
+                      <Skill id={skillId} disableText />
+                    </div>
                   </div>
-                </div>
-              );
-            } else {
-              content = (
-                <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>
-                  <Skill id={id} disableText style={cancelledStyle} />
-                </div>
-              );
-            }
+                );
+              } else {
+                content = (skillId) => (
+                  <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>
+                    <Skill id={skillId} disableText style={cancelledStyle} />
+                  </div>
+                );
+              }
 
-            return Array(count)
-              .fill()
-              .map((_, innerSkillIndex) => (
-                <Fragment key={`${skillIndex}-${innerSkillIndex}`}>{content}</Fragment>
-              ));
-          })}
+              const ids = [...idsSet];
+
+              return Array(count)
+                .fill()
+                .map((_, innerSkillIndex) => (
+                  <Fragment key={`${skillIndex}-${innerSkillIndex}`}>
+                    {content(ids[innerSkillIndex % ids.length])}
+                  </Fragment>
+                ));
+            },
+          )}
         </div>
       ))}
     </div>
@@ -85,15 +94,15 @@ function RotationDisplay({ skillCasts, showInstantsAsInstant = true }) {
 function App() {
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState('');
-  const [skillCasts, setSkillCasts] = useState([]);
 
-  const [nameLength, setNameLength] = useState(7);
-  const [includeInstants, setIncludeInstants] = useState(false);
-  const [includeCancelledNonAutos, setIncludeCancelledNonAutos] = useState(true);
+  const [nameLengthPref, setNameLengthPref] = useState(7);
+  const [includeInstantsPref, setIncludeInstantsPref] = useState(false);
+  const [includeCancelledPref, setIncludeCancelledPref] = useState(true);
+  const [splitAutoChainsPref, setSplitAutoChainsPref] = useState(false);
 
-  const [nameDictionary, setNameDictionary] = useState(new Map());
-
-  const [textBoxCopyable, setTextBoxCopyable] = useState('');
+  const [skillDictionary, setSkillDictionary] = useState(new Map());
+  const [rotationUncombined, setRotationUncombined] = useState([]);
+  const [serializedLogRotation, setSerializedLogRotation] = useState('');
 
   const [textBox, setTextBox] = useState('');
 
@@ -105,57 +114,161 @@ function App() {
           const permalink = url.split('/').slice(-1);
           if (!permalink) return;
           // eslint-disable-next-line no-console
-          console.log('loading data from dps.report...');
+          console.info('loading data from dps.report...');
           const response = await fetch(`https://dps.report/getJson?permalink=${permalink}`);
           const dpsReportData = await response.json();
           // eslint-disable-next-line no-console
-          console.log('got data from dps.report: ', dpsReportData);
+          console.info('got data from dps.report: ', dpsReportData);
 
           if (dpsReportData.error || !Array.isArray(dpsReportData?.players)) {
             setStatus(JSON.stringify(dpsReportData, null, 2));
             return;
           }
-
           const playerData = dpsReportData.players.find(
             (player) => player.name === dpsReportData.recordedBy,
           );
-
           if (!playerData) {
             setStatus('no player data!');
             return;
           }
 
-          const { rotation: rotationDataSkillEntries } = playerData;
+          /**
+           * @typedef eiSkillCastEntry
+           * @type {object}
+           * @property {number} castTime
+           * @property {number} duration
+           * @property {number} timeGained
+           * @property {number} quickness
+           */
+          /**
+           * @typedef eiSkillEntry
+           * @type {object}
+           * @property {number} id
+           * @property {eiSkillCastEntry[]} skills
+           */
+          /** @type {eiSkillEntry[]} */
+          const eiSkillDataEntries = playerData.rotation;
 
-          const { skillMap } = dpsReportData;
+          /**
+           * @typedef eiSkillMapEntry
+           * @type {object}
+           * @property {string} name
+           * @property {boolean} autoAttack
+           * @property {boolean} isSwap
+           * @property {boolean} canCrit
+           * @property {string} icon
+           */
+          /** @type {Object.<string, eiSkillMapEntry>} */
+          const eiSkillMap = dpsReportData.skillMap;
 
-          const allSkillCasts = rotationDataSkillEntries
+          /**
+           * @typedef rawSkillCast
+           * @type {object}
+           * @property {number} id
+           * @property {number} castTime
+           * @property {boolean} instant
+           * @property {boolean} cancelled
+           */
+
+          /** @type {rawSkillCast[]} */
+          const validRawSkillCasts = eiSkillDataEntries
             .flatMap(({ id, skills }) => {
-              return skills.map(({ castTime, duration, timeGained, quickness }) => {
-                const { name, autoAttack, canCrit, isSwap, icon } = skillMap[`s${id}`];
+              return skills.map(({ castTime, duration, timeGained }) => {
                 return {
                   id,
-                  name,
-                  autoAttack,
-                  canCrit,
-                  isSwap,
-                  icon,
                   castTime,
-                  duration,
-                  timeGained,
+                  instant: duration === 0,
                   cancelled: timeGained < 0,
-                  quickness,
-                  count: 1,
                 };
               });
             })
-            .filter(({ autoAttack, cancelled }) => {
-              return cancelled === false || (includeCancelledNonAutos && autoAttack === false);
+            .filter(({ id, cancelled }) => {
+              const { autoAttack } = eiSkillMap[`s${id}`];
+              return cancelled === false || (includeCancelledPref && autoAttack === false);
             })
             .filter(({ id }) => skillBlacklist.includes(id) === false)
             .sort((a, b) => a.castTime - b.castTime);
 
-          const skillCastsByWeapon = allSkillCasts
+          /**
+           * @typedef skillTypeDictionaryEntry
+           * @type {object}
+           * @property {number} id
+           * @property {Set} idsSet
+           * @property {boolean} isSwap
+           * @property {boolean} autoAttack
+           * @property {boolean} instant
+           * @property {string} shortName
+           */
+
+          /** @type {Object.<number, skillTypeDictionaryEntry>} */
+          const skillTypeDictionary = {};
+          let autoAttackTypeCounter = 1;
+          validRawSkillCasts.forEach(({ id, instant }) => {
+            if (skillTypeDictionary[id]) return;
+
+            // eslint-disable-next-line no-unused-vars
+            const { name, autoAttack, isSwap, canCrit, icon } = eiSkillMap[`s${id}`];
+            if (isSwap || id === WEAPON_SWAP) return;
+
+            let shortName = '???';
+            if (autoAttack) {
+              shortName = `auto${autoAttackTypeCounter++}`;
+            } else {
+              shortName = name
+                .replaceAll(':', '')
+                .replaceAll('"', '')
+                .replaceAll("'", '')
+                .replaceAll('!', '')
+                .split(' ')
+                .filter((str) => str.substring(0, 1) === str.substring(0, 1).toUpperCase())
+                .map((str) => str.substring(0, nameLengthPref))
+                .join('');
+            }
+
+            const hasDuplicateShortName = (nameToTest) =>
+              Object.values(skillTypeDictionary).filter(
+                ({ shortName: entryShortName }) => entryShortName === nameToTest,
+              ).length;
+
+            if (hasDuplicateShortName(shortName)) {
+              let count = 2;
+              while (hasDuplicateShortName(`${shortName}${count}`)) {
+                count++;
+              }
+              shortName = `${shortName}${count}`;
+            }
+
+            skillTypeDictionary[id] = {
+              id,
+              idsSet: new Set([id]),
+              isSwap,
+              autoAttack,
+              instant,
+              shortName,
+            };
+          });
+          setSkillDictionary(skillTypeDictionary);
+
+          /**
+           * @typedef skillCast
+           * @type {object}
+           * @property {number} id
+           * @property {skillTypeDictionaryEntry?} data
+           * @property {number?} castTime
+           * @property {boolean?} instant
+           * @property {boolean?} cancelled
+           * @property {number?} count
+           */
+
+          /** @type {skillCast[]} */
+          const skillCasts = validRawSkillCasts.map(({ id, ...rest }) => ({
+            id,
+            ...rest,
+            data: skillTypeDictionary[id],
+          }));
+
+          /** @type {skillCast[][]} */
+          const skillSequences = skillCasts
             .reduce(
               (prev, cur) => {
                 if (cur.isSwap || cur.id === WEAPON_SWAP) {
@@ -167,86 +280,51 @@ function App() {
               },
               [[]],
             )
-            .filter((arr) => arr.length)
-            .map((arr, i) => ({
-              label: i,
-              data: arr,
-            }));
+            .filter((skillSequence) => skillSequence.length);
 
-          setStatus('loaded rotation');
-          setSkillCasts(skillCastsByWeapon);
+          const rotation = skillSequences.map((skillSequence, i) => ({
+            label: String(i),
+            skillSequence,
+          }));
 
-          const dictionary = new Map();
+          setRotationUncombined(rotation);
 
-          let autoAttackCounter = 1;
+          /** @type {skillCast[][]} */
+          const combinedSkillSequences = skillSequences.map((skillSequence) =>
+            skillSequence
+              .map((skillCast) => ({ ...skillCast, count: 1 }))
+              .filter(({ duration }) => duration !== 0 || includeInstantsPref)
+              .reduce((prev, cur) => {
+                if (cur.data.autoAttack && prev.at(-1)?.data.autoAttack) {
+                  prev.at(-1).count += 1;
+                  prev.at(-1).data.idsSet.add(cur.id);
+                } else {
+                  prev.push(cur);
+                }
+                return prev;
+              }, []),
+          );
 
-          allSkillCasts.forEach(({ id, name, isSwap, autoAttack, duration }) => {
-            if (isSwap || id === WEAPON_SWAP) return;
-            if (dictionary.has(id)) return;
+          const rotationCombined = combinedSkillSequences
+            .map((skillSequence, i) => ({
+              label: String(i),
+              skillSequence,
+            }))
+            .filter(({ skillSequence }) => skillSequence.length);
 
-            let shortName = '???';
-            if (autoAttack) {
-              shortName = `auto${autoAttackCounter++}`;
-            } else {
-              shortName = name
-                .replaceAll(':', '')
-                .replaceAll('"', '')
-                .replaceAll("'", '')
-                .replaceAll('!', '')
-                .split(' ')
-                .filter((str) => str.substring(0, 1) === str.substring(0, 1).toUpperCase())
-                .map((str) => str.substring(0, nameLength))
-                .join('');
-            }
-
-            const dictionaryHasDuplicateName = (nameToTest) =>
-              [...dictionary.values()].filter(
-                ({ shortName: entryShortName }) => entryShortName === nameToTest,
-              ).length;
-
-            if (dictionaryHasDuplicateName(shortName)) {
-              let count = 2;
-              while (dictionaryHasDuplicateName(`${shortName}${count}`)) {
-                count++;
-              }
-              shortName = `${shortName}${count}`;
-            }
-
-            dictionary.set(id, { id, isSwap, autoAttack, duration, shortName });
-          });
-
-          setNameDictionary(dictionary);
-
-          const skillCastsByWeaponCombinedAutoattacks = skillCastsByWeapon
-            .map(({ data, label }) => {
-              const newData = data
-                .filter(({ duration }) => duration !== 0 || includeInstants)
-                .reduce((prev, cur) => {
-                  if (cur.autoAttack && prev.at(-1)?.autoAttack) {
-                    prev.at(-1).count += 1;
-                  } else {
-                    prev.push({ ...cur });
-                  }
-                  return prev;
-                }, []);
-              return { data: newData, label };
-            })
-            .filter(({ data }) => data.length);
-
-          const formatted = skillCastsByWeaponCombinedAutoattacks
+          const serializedRotation = rotationCombined
             .map(
-              ({ data, label }) =>
+              ({ skillSequence, label }) =>
                 `${label}: ` +
-                data
-                  .map(
-                    ({ id, count }) =>
-                      (count > 1 ? `${count}x ` : '') + dictionary.get(id).shortName,
-                  )
+                skillSequence
+                  .map(({ count, data }) => (count > 1 ? `${count}x ` : '') + data.shortName)
                   .join(', '),
             )
             .join('\n\n');
 
-          setTextBoxCopyable(formatted);
+          setSerializedLogRotation(serializedRotation);
+
+          setStatus('loaded rotation');
         } catch (e) {
           // eslint-disable-next-line no-console
           console.error(e);
@@ -255,41 +333,47 @@ function App() {
       }
     }
     fetchData();
-  }, [url, nameLength, includeInstants, includeCancelledNonAutos]);
+  }, [url, nameLengthPref, includeInstantsPref, includeCancelledPref]);
 
-  let parsedTextBox = [];
+  let parsedTextBoxRotation = [];
 
   try {
-    parsedTextBox = textBox
+    parsedTextBoxRotation = textBox
       .split('\n')
       .filter(Boolean)
       .map((line, i) => {
         const splitLine = line.split(':');
         const label = splitLine.length > 1 ? splitLine.at(0).trim() : i;
-        const strippedLine = splitLine.at(-1);
+        const skillSequenceString = splitLine.at(-1);
+
+        /** @type {skillCast[]} */
+        const skillSequence = skillSequenceString
+          .split(',')
+          .map((str) => str.trim())
+          .filter(Boolean)
+          .flatMap((str) => {
+            let count = 1;
+            const splitString = str.split(' ').filter(Boolean);
+
+            if (splitString.length > 1 && Number(splitString[0].trim().replaceAll('x', ''))) {
+              count = Number(splitString[0].trim().replaceAll('x', ''));
+            }
+
+            const name = splitString.at(-1).trim();
+
+            // if the user's string doesn't match, just use it as the ID
+            const fallback = [str];
+
+            const [id, data] =
+              Object.entries(skillDictionary).find(([_, { shortName }]) => shortName === name) ??
+              fallback;
+
+            return { id, data, count };
+          });
 
         return {
           label,
-          data: strippedLine
-            .split(',')
-            .map((str) => str.trim())
-            .filter(Boolean)
-            .flatMap((str) => {
-              let count = 1;
-              const splitString = str.split(' ').filter(Boolean);
-
-              if (splitString.length > 1 && Number(splitString[0].trim().replaceAll('x', ''))) {
-                count = Number(splitString[0].trim().replaceAll('x', ''));
-              }
-
-              const name = splitString.at(-1).trim();
-
-              const foundData = [...nameDictionary.entries()].find(
-                ([_, { shortName }]) => shortName === name,
-              )?.[1] ?? { id: str };
-
-              return { ...foundData, count };
-            }),
+          skillSequence,
         };
       });
   } catch (error) {
@@ -297,11 +381,37 @@ function App() {
     console.error(error);
   }
 
-  const snowCrowsOutput = parsedTextBox.map(({ label, data }) => {
-    const formattedData = data.map(({ id, isSwap, count }) => {
+  const snowCrowsOutput = parsedTextBoxRotation.map(({ label, skillSequence }) => {
+    const formattedData = skillSequence.map(({ id, data: { isSwap, idsSet }, count }) => {
       if (isSwap || id === WEAPON_SWAP) return '1. [sc:202][/sc]';
-      if (count > 1) return `1. ${count}x [gw2:${id}:skill]`;
-      return `1. [gw2:${id}:skill]`;
+
+      const countStr = count > 1 ? `${count}x ` : '';
+
+      const ids = [...idsSet];
+
+      if (ids.length > 1 && splitAutoChainsPref) {
+        const nonChainAutoCount = count % ids.length;
+        const chainAutoCount = Math.floor(count / ids.length);
+
+        const result = [];
+
+        if (chainAutoCount) {
+          const allChainSkillsStr = ids.map((skillId) => `[gw2:${skillId}:skill]`).join(' --> ');
+          result.push(`1. ${chainAutoCount}x ${allChainSkillsStr}`);
+        }
+
+        if (nonChainAutoCount) {
+          const allChainSkillsStr = ids
+            .slice(0, nonChainAutoCount)
+            .map((skillId) => `[gw2:${skillId}:skill]`)
+            .join(' --> ');
+          result.push(`1. ${allChainSkillsStr}`);
+        }
+
+        return result.join('\n');
+      }
+
+      return `1. ${countStr}[gw2:${id}:skill]`;
     });
 
     return `## ${label}` + '\n\n' + formattedData.join('\n') + '\n\n';
@@ -340,9 +450,9 @@ function App() {
           preferred skillname length for editing:{' '}
           <input
             type="number"
-            value={nameLength}
+            value={nameLengthPref}
             onChange={(e) => {
-              setNameLength(e.target.value);
+              setNameLengthPref(e.target.value);
             }}
           />
         </label>
@@ -350,9 +460,9 @@ function App() {
           try to include instant cast skills in edit form:{' '}
           <input
             type="checkbox"
-            checked={includeInstants}
+            checked={includeInstantsPref}
             onChange={(e) => {
-              setIncludeInstants(e.target.checked);
+              setIncludeInstantsPref(e.target.checked);
             }}
           />
         </label>
@@ -360,9 +470,20 @@ function App() {
           include &quot;cancelled&quot; non auto skills:{' '}
           <input
             type="checkbox"
-            checked={includeCancelledNonAutos}
+            checked={includeCancelledPref}
             onChange={(e) => {
-              setIncludeCancelledNonAutos(e.target.checked);
+              setIncludeCancelledPref(e.target.checked);
+            }}
+          />
+        </label>
+
+        <label>
+          count auto chains instead of autos :{' '}
+          <input
+            type="checkbox"
+            checked={splitAutoChainsPref}
+            onChange={(e) => {
+              setSplitAutoChainsPref(e.target.checked);
             }}
           />
         </label>
@@ -370,21 +491,21 @@ function App() {
       <div style={{ display: 'flex', width: '100%' }}>
         <div style={{ flex: 1 }}>
           <h3>imported rotation</h3>
-          <RotationDisplay skillCasts={skillCasts} />
+          <RotationDisplay rotation={rotationUncombined} />
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <h3>edit rotation</h3>
           <label>
             copy imported rotation to editable form
-            <button id="copybutton" type="button" onClick={() => setTextBox(textBoxCopyable)}>
+            <button id="copybutton" type="button" onClick={() => setTextBox(serializedLogRotation)}>
               import!
             </button>
           </label>
           <div>
             <b>regular skills: </b>
             <div>
-              {[...nameDictionary.values()]
-                .filter(({ duration }) => duration)
+              {Object.values(skillDictionary)
+                .filter(({ instant }) => !instant)
                 .map(({ shortName }) => shortName)
                 .join(', ')}
             </div>
@@ -392,8 +513,8 @@ function App() {
           <div>
             <b>instant skills: </b>
             <div>
-              {[...nameDictionary.values()]
-                .filter(({ duration }) => !duration)
+              {Object.values(skillDictionary)
+                .filter(({ instant }) => instant)
                 .map(({ shortName }) => shortName)
                 .join(', ')}
             </div>
@@ -404,7 +525,7 @@ function App() {
             style={{ resize: 'vertical', height: '200px' }}
             autoCorrect="off"
           />
-          <RotationDisplay skillCasts={parsedTextBox} showInstantsAsInstant={false} />
+          <RotationDisplay rotation={parsedTextBoxRotation} showInstantsAsInstant={false} />
         </div>
       </div>
       <div>
