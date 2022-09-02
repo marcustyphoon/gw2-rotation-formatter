@@ -323,6 +323,8 @@ function App() {
             }, []),
         );
 
+        console.log('skillTypeDictionary', skillTypeDictionary);
+
         const rotationCombined = combinedSkillSequences
           .map((skillSequence, i) => ({
             label: String(i),
@@ -380,9 +382,12 @@ function App() {
             // if the user's string doesn't match, just use it as the ID
             const fallback = [str];
 
-            const [id, data] =
+            const [idString, data] =
               Object.entries(skillDictionary).find(([_, { shortName }]) => shortName === name) ??
               fallback;
+
+            // apparently gw2-ui fails if you give it a string ID... only if it has overrides
+            const id = Number(idString);
 
             return { id, data, count };
           });
