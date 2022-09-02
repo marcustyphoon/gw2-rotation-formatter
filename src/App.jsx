@@ -500,7 +500,6 @@ function App() {
             }}
           />
         </label>
-
         <label>
           count auto chains instead of autos :{' '}
           <input
@@ -511,6 +510,9 @@ function App() {
             }}
           />
         </label>
+        <div>
+          <em>(pressing import again after changing settings is a good idea.)</em>
+        </div>
       </div>
       <div style={{ display: 'flex', width: '100%' }}>
         <div style={{ flex: 1 }}>
