@@ -20,7 +20,7 @@ const skillBlacklist = [
 
 const WEAPON_SWAP = -2;
 
-function RotationDisplay({ rotation, showInstantsAsInstant = true }) {
+function RotationDisplay({ rotation, splitAutoChains = true, showInstantsAsInstant = true }) {
   return (
     <div
       style={{
@@ -42,49 +42,50 @@ function RotationDisplay({ rotation, showInstantsAsInstant = true }) {
           key={rowIndex}
         >
           {label}:
-          {skillSequence.map(
-            (
-              { id, cancelled, count, data: { idsSet, isSwap, autoAttack, instant } },
-              skillIndex,
-            ) => {
-              let content = '';
-              const cancelledStyle = cancelled ? { border: '2px solid red' } : {};
+          {skillSequence.map(({ id, cancelled, count, data }, skillIndex) => {
+            const { idsSet, isSwap, autoAttack, instant } = data ?? {
+              idsSet: new Set([id]),
+              isSwap: false,
+              autoAttack: false,
+              instant: false,
+            };
+            let content = '';
+            const cancelledStyle = cancelled ? { border: '2px solid red' } : {};
 
-              if (isSwap || id === WEAPON_SWAP) {
-                content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
-              } else if (instant && showInstantsAsInstant) {
-                content = (skillId) => (
-                  <div style={{ width: 0 }}>
-                    <div
-                      style={{
-                        position: 'relative',
-                        top: '20px',
-                        fontSize: autoAttack ? '0.7em' : '1em',
-                      }}
-                    >
-                      <Skill id={skillId} disableText />
-                    </div>
+            if (isSwap || id === WEAPON_SWAP) {
+              content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
+            } else if (instant && showInstantsAsInstant) {
+              content = (skillId) => (
+                <div style={{ width: 0 }}>
+                  <div
+                    style={{
+                      position: 'relative',
+                      top: '20px',
+                      fontSize: autoAttack ? '0.7em' : '1em',
+                    }}
+                  >
+                    <Skill id={skillId} disableText />
                   </div>
-                );
-              } else {
-                content = (skillId) => (
-                  <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>
-                    <Skill id={skillId} disableText style={cancelledStyle} />
-                  </div>
-                );
-              }
+                </div>
+              );
+            } else {
+              content = (skillId) => (
+                <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>
+                  <Skill id={skillId} disableText style={cancelledStyle} />
+                </div>
+              );
+            }
 
-              const ids = [...idsSet];
+            const ids = [...idsSet];
 
-              return Array(count)
-                .fill()
-                .map((_, innerSkillIndex) => (
-                  <Fragment key={`${skillIndex}-${innerSkillIndex}`}>
-                    {content(ids[innerSkillIndex % ids.length])}
-                  </Fragment>
-                ));
-            },
-          )}
+            return Array(count)
+              .fill()
+              .map((_, innerSkillIndex) => (
+                <Fragment key={`${skillIndex}-${innerSkillIndex}`}>
+                  {content(splitAutoChains ? ids[innerSkillIndex % ids.length] : id)}
+                </Fragment>
+              ));
+          })}
         </div>
       ))}
     </div>
@@ -93,7 +94,7 @@ function RotationDisplay({ rotation, showInstantsAsInstant = true }) {
 
 function App() {
   const [url, setUrl] = useState('');
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState('waiting...');
 
   const [nameLengthPref, setNameLengthPref] = useState(7);
   const [includeInstantsPref, setIncludeInstantsPref] = useState(false);
@@ -108,7 +109,7 @@ function App() {
 
   useEffect(() => {
     async function fetchData() {
-      setStatus('');
+      setStatus('waiting...');
       if (url) {
         try {
           const permalink = url.split('/').slice(-1);
@@ -208,7 +209,6 @@ function App() {
 
             // eslint-disable-next-line no-unused-vars
             const { name, autoAttack, isSwap, canCrit, icon } = eiSkillMap[`s${id}`];
-            if (isSwap || id === WEAPON_SWAP) return;
 
             let shortName = '???';
             if (autoAttack) {
@@ -271,7 +271,7 @@ function App() {
           const skillSequences = skillCasts
             .reduce(
               (prev, cur) => {
-                if (cur.isSwap || cur.id === WEAPON_SWAP) {
+                if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
                   prev.push([]);
                 } else {
                   prev.at(-1).push(cur);
@@ -293,7 +293,7 @@ function App() {
           const combinedSkillSequences = skillSequences.map((skillSequence) =>
             skillSequence
               .map((skillCast) => ({ ...skillCast, count: 1 }))
-              .filter(({ duration }) => duration !== 0 || includeInstantsPref)
+              .filter(({ instant }) => !instant || includeInstantsPref)
               .reduce((prev, cur) => {
                 if (cur.data.autoAttack && prev.at(-1)?.data.autoAttack) {
                   prev.at(-1).count += 1;
@@ -382,10 +382,9 @@ function App() {
   }
 
   const snowCrowsOutput = parsedTextBoxRotation.map(({ label, skillSequence }) => {
-    const formattedData = skillSequence.map(({ id, data: { isSwap, idsSet }, count }) => {
+    const formattedData = skillSequence.map(({ id, data, count }) => {
+      const { isSwap, idsSet } = data ?? { isSwap: false, idsSet: new Set([id]) };
       if (isSwap || id === WEAPON_SWAP) return '1. [sc:202][/sc]';
-
-      const countStr = count > 1 ? `${count}x ` : '';
 
       const ids = [...idsSet];
 
@@ -397,7 +396,8 @@ function App() {
 
         if (chainAutoCount) {
           const allChainSkillsStr = ids.map((skillId) => `[gw2:${skillId}:skill]`).join(' --> ');
-          result.push(`1. ${chainAutoCount}x ${allChainSkillsStr}`);
+          const chainAutoCountStr = chainAutoCount > 1 ? `${count}x ` : '';
+          result.push(`1. ${chainAutoCountStr}${allChainSkillsStr}`);
         }
 
         if (nonChainAutoCount) {
@@ -411,6 +411,7 @@ function App() {
         return result.join('\n');
       }
 
+      const countStr = count > 1 ? `${count}x ` : '';
       return `1. ${countStr}[gw2:${id}:skill]`;
     });
 
@@ -427,7 +428,17 @@ function App() {
       }}
     >
       <h2>dps.report to sc site rotation</h2>
-      <div>(very wip)</div>
+      <div>
+        (very wip.{' '}
+        <a
+          href="https://github.com/marcustyphoon/gw2-rotation-formatter"
+          target="_blank"
+          rel="noreferrer"
+        >
+          source on github
+        </a>
+        .)
+      </div>
       <label>
         enter dps.report url:{' '}
         <input
@@ -525,7 +536,11 @@ function App() {
             style={{ resize: 'vertical', height: '200px' }}
             autoCorrect="off"
           />
-          <RotationDisplay rotation={parsedTextBoxRotation} showInstantsAsInstant={false} />
+          <RotationDisplay
+            rotation={parsedTextBoxRotation}
+            splitAutoChains={splitAutoChainsPref}
+            showInstantsAsInstant={false}
+          />
         </div>
       </div>
       <div>
