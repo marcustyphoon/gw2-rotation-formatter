@@ -2,15 +2,23 @@
 /* eslint-disable prefer-template */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/no-array-index-key */
-import { useState, useEffect, Fragment } from 'react';
-
-import './App.css';
+import { Fragment, useEffect, useState } from 'react';
 
 import '@discretize/gw2-ui-new/dist/default_style.css';
 import '@discretize/gw2-ui-new/dist/index.css';
 import '@discretize/typeface-menomonia';
 
 import { Skill } from '@discretize/gw2-ui-new';
+import {
+  container,
+  exportedRotation,
+  importedRotation,
+  outputTextBox,
+  rotationContainer,
+  settings,
+  skillTextBox,
+  // eslint-disable-next-line import/no-unresolved
+} from './App.css';
 
 const skillBlacklist = [
   9292, // air
@@ -323,6 +331,7 @@ function App() {
             }, []),
         );
 
+        // eslint-disable-next-line no-console
         console.log('skillTypeDictionary', skillTypeDictionary);
 
         const rotationCombined = combinedSkillSequences
@@ -440,14 +449,7 @@ function App() {
   });
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        rowGap: '0.5em',
-      }}
-    >
+    <div className={container}>
       <h2>dps.report to sc site rotation</h2>
       <div>
         (very wip.{' '}
@@ -470,14 +472,7 @@ function App() {
         />
       </label>
       <div>status: {status}</div>
-      <div
-        style={{
-          outline: '1px solid grey',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '0.5em',
-        }}
-      >
+      <div className={settings}>
         <label>
           preferred skillname length for editing:{' '}
           <input
@@ -532,12 +527,12 @@ function App() {
           <em>(pressing import again after changing settings is a good idea.)</em>
         </div>
       </div>
-      <div style={{ display: 'flex', width: '100%' }}>
-        <div style={{ flex: 1 }}>
+      <div className={rotationContainer}>
+        <div className={importedRotation}>
           <h3>imported rotation</h3>
           <RotationDisplay rotation={rotationUncombined} />
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div className={exportedRotation}>
           <h3>edit rotation</h3>
           <label>
             copy imported rotation to editable form
@@ -566,7 +561,7 @@ function App() {
           <textarea
             value={textBox}
             onChange={(e) => setTextBox(e.target.value)}
-            style={{ resize: 'vertical', height: '200px' }}
+            className={skillTextBox}
             autoCorrect="off"
           />
           <RotationDisplay
@@ -577,16 +572,7 @@ function App() {
         </div>
       </div>
       <div>
-        <pre
-          style={{
-            width: '500px',
-            maxHeight: '500px',
-            outline: '1px solid grey',
-            overflow: 'scroll',
-          }}
-        >
-          {snowCrowsOutput}
-        </pre>
+        <pre className={outputTextBox}>{snowCrowsOutput}</pre>
       </div>
     </div>
   );
