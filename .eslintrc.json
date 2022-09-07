@@ -28,13 +28,6 @@
     "consistent-return": "off",
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^e$|^_", "varsIgnorePattern": "^e$|^_" }],
     "react/react-in-jsx-scope": "off",
-
-    "react/prop-types": "off",
-    "react/jsx-props-no-spreading": "off",
-
-    // prettier compat
-    "arrow-body-style": "off",
-    "prefer-arrow-callback": "off",
     "id-length": [
       "warn",
       {
@@ -50,6 +43,16 @@
           "_"
         ]
       }
-    ]
+    ],
+
+    "react/prop-types": "off",
+    "react/jsx-props-no-spreading": "off",
+
+    // prettier compat
+    "arrow-body-style": "off",
+    "prefer-arrow-callback": "off",
+
+    // vanilla extract + vs code incompatibility
+    "import/no-unresolved": ["warn", { "ignore": ["\\.css$"] }]
   }
 }

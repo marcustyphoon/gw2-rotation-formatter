@@ -2,13 +2,10 @@
 /* eslint-disable prefer-template */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable react/no-array-index-key */
-import { Fragment, useEffect, useState } from 'react';
-
 import '@discretize/gw2-ui-new/dist/default_style.css';
 import '@discretize/gw2-ui-new/dist/index.css';
 import '@discretize/typeface-menomonia';
-
-import { Skill } from '@discretize/gw2-ui-new';
+import { useEffect, useState } from 'react';
 import {
   container,
   exportedRotation,
@@ -17,88 +14,15 @@ import {
   rotationContainer,
   settings,
   skillTextBox,
-  // eslint-disable-next-line import/no-unresolved
 } from './App.css';
+import { WEAPON_SWAP } from './constants';
+import RotationDisplay from './RotationDisplay';
 
 const skillBlacklist = [
   9292, // air
   9433, // geomancy
   9428, // hydromancy
 ];
-
-const WEAPON_SWAP = -2;
-
-function RotationDisplay({ rotation, splitAutoChains = true, showInstantsAsInstant = true }) {
-  return (
-    <div
-      style={{
-        maxWidth: '1280px',
-        display: 'flex',
-        flexDirection: 'column',
-        rowGap: '25px',
-        fontSize: '25px',
-      }}
-    >
-      {rotation.map(({ skillSequence, label }, rowIndex) => (
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            minHeight: '40px',
-          }}
-          key={rowIndex}
-        >
-          {label}:
-          {skillSequence.map(({ id, cancelled, count, data }, skillIndex) => {
-            const { idsSet, isSwap, autoAttack, instant } = data ?? {
-              idsSet: new Set([id]),
-              isSwap: false,
-              autoAttack: false,
-              instant: false,
-            };
-            let content = '';
-            const cancelledStyle = cancelled ? { border: '2px solid red' } : {};
-
-            if (isSwap || id === WEAPON_SWAP) {
-              content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
-            } else if (instant && showInstantsAsInstant) {
-              content = (skillId) => (
-                <div style={{ width: 0 }}>
-                  <div
-                    style={{
-                      position: 'relative',
-                      top: '20px',
-                      fontSize: autoAttack ? '0.7em' : '1em',
-                    }}
-                  >
-                    <Skill id={skillId} disableText />
-                  </div>
-                </div>
-              );
-            } else {
-              content = (skillId) => (
-                <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>
-                  <Skill id={skillId} disableText style={cancelledStyle} />
-                </div>
-              );
-            }
-
-            const ids = [...idsSet];
-
-            return Array(count)
-              .fill()
-              .map((_, innerSkillIndex) => (
-                <Fragment key={`${skillIndex}-${innerSkillIndex}`}>
-                  {content(splitAutoChains ? ids[innerSkillIndex % ids.length] : id)}
-                </Fragment>
-              ));
-          })}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function App() {
   const [url, setUrl] = useState('');
