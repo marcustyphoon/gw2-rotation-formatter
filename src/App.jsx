@@ -35,7 +35,7 @@ function App() {
   const [splitAutoChainsPref, setSplitAutoChainsPref] = useState(false);
   const [noSwapsPref, setNoSwapsPref] = useState(false);
 
-  const [skillDictionary, setSkillDictionary] = useState(new Map());
+  const [skillDictionary, setSkillDictionary] = useState({});
   const [rotationUncombined, setRotationUncombined] = useState([]);
   const [serializedLogRotation, setSerializedLogRotation] = useState('');
 
@@ -195,6 +195,7 @@ function App() {
           }
 
           skillTypeDictionary[id] = {
+            name,
             id,
             idsSet: new Set([id]),
             isSwap,
@@ -341,10 +342,25 @@ function App() {
     console.error(error);
   }
 
-  const snowCrowsOutput = parsedTextBoxRotation.map(({ label, skillSequence }) => {
+  const scFormat = {
+    label: (label) => `## ${label}`,
+    weaponSwap: () => '1. [sc:202][/sc]',
+    skill: (id) => `[gw2:${id}:skill]`,
+  };
+
+  const dtFormat = {
+    label: (label) => `${label}:`,
+    weaponSwap: () => '1. swap',
+    skill: (id) =>
+      skillDictionary[id]?.name
+        ? `<Skill name="${skillDictionary[id].name}"/>`
+        : `<Skill id="${id}"/>`,
+  };
+
+  const formatData = (format) => parsedTextBoxRotation.map(({ label, skillSequence }) => {
     const formattedData = skillSequence.map(({ id, data, count }) => {
       const { isSwap, idsSet } = data ?? { isSwap: false, idsSet: new Set([id]) };
-      if (isSwap || id === WEAPON_SWAP) return '1. [sc:202][/sc]';
+      if (isSwap || id === WEAPON_SWAP) return format.weaponSwap();
 
       const ids = [...idsSet];
 
@@ -355,7 +371,7 @@ function App() {
         const result = [];
 
         if (chainAutoCount) {
-          const allChainSkillsStr = ids.map((skillId) => `[gw2:${skillId}:skill]`).join(' --> ');
+          const allChainSkillsStr = ids.map((skillId) => format.skill(skillId)).join(' --> ');
           const chainAutoCountStr = chainAutoCount > 1 ? `${count}x ` : '';
           result.push(`1. ${chainAutoCountStr}${allChainSkillsStr}`);
         }
@@ -363,7 +379,7 @@ function App() {
         if (nonChainAutoCount) {
           const allChainSkillsStr = ids
             .slice(0, nonChainAutoCount)
-            .map((skillId) => `[gw2:${skillId}:skill]`)
+            .map((skillId) => format.skill(skillId))
             .join(' --> ');
           result.push(`1. ${allChainSkillsStr}`);
         }
@@ -372,11 +388,14 @@ function App() {
       }
 
       const countStr = count > 1 ? `${count}x ` : '';
-      return `1. ${countStr}[gw2:${id}:skill]`;
+      return `1. ${countStr}${format.skill(id)}`;
     });
 
-    return `## ${label}` + '\n\n' + formattedData.join('\n') + '\n\n';
+    return format.label(label) + '\n\n' + formattedData.join('\n') + '\n\n';
   });
+
+  const snowCrowsOutput = formatData(scFormat);
+  const discretizeOutput = formatData(dtFormat);
 
   return (
     <div className={verticalFlexContainer}>
@@ -506,6 +525,10 @@ function App() {
         <div>
           Snow Crows website style:
           <pre className={outputTextBox}>{snowCrowsOutput}</pre>
+        </div>
+        <div>
+          Discretize website style (WIP):
+          <pre className={outputTextBox}>{discretizeOutput}</pre>
         </div>
       </div>
     </div>
