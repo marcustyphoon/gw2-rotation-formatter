@@ -30,10 +30,10 @@ function App() {
   const [status, setStatus] = useState('waiting...');
   const [dpsReportData, setDpsReportData] = useState(undefined);
 
-  const [nameLengthPref, setNameLengthPref] = useState(7);
+  const [nameLengthPref, setNameLengthPref] = useState(10);
   const [includeInstantsPref, setIncludeInstantsPref] = useState(false);
   const [includeCancelledPref, setIncludeCancelledPref] = useState(true);
-  const [splitAutoChainsPref, setSplitAutoChainsPref] = useState(false);
+  const [splitAutoChainsPref, setSplitAutoChainsPref] = useState(true);
   const [noSwapsPref, setNoSwapsPref] = useState(false);
 
   const [skillDictionary, setSkillDictionary] = useState({});
