@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import { Skill } from '@discretize/gw2-ui-new';
-import { Fragment } from 'react';
+import React, { Fragment } from 'react';
 import { WEAPON_SWAP } from './constants';
 import {
   info,
@@ -76,6 +76,7 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
       <Fragment key={i}>{content(splitAutoChains ? ids[i % ids.length] : id)}</Fragment>
     ));
 }
+const RotationSkillMemo = React.memo(RotationSkill);
 
 export default function RotationDisplay({
   rotation,
@@ -87,7 +88,7 @@ export default function RotationDisplay({
     <div className={row} key={rowIndex}>
       <div className={rowLabel}>{label}: </div>
       {skillSequence.map(({ id, cancelled, count, data }, i) => (
-        <RotationSkill
+        <RotationSkillMemo
           {...{ id, cancelled, count, data }}
           {...{ splitAutoChains, showInstantsAsInstant }}
           key={i}
