@@ -346,6 +346,7 @@ function App() {
     label: (label) => `## ${label}`,
     weaponSwap: () => '1. [sc:202][/sc]',
     skill: (id) => `[gw2:${id}:skill]`,
+    arrow: () => '-->',
   };
 
   const dtFormat = {
@@ -355,6 +356,7 @@ function App() {
       skillDictionary[id]?.name
         ? `<Skill name="${skillDictionary[id].name}"/>`
         : `<Skill id="${id}"/>`,
+    arrow: () => '-',
   };
 
   const formatData = (format) =>
@@ -372,7 +374,9 @@ function App() {
           const result = [];
 
           if (chainAutoCount) {
-            const allChainSkillsStr = ids.map((skillId) => format.skill(skillId)).join(' --> ');
+            const allChainSkillsStr = ids
+              .map((skillId) => format.skill(skillId))
+              .join(` ${format.arrow()} `);
             const chainAutoCountStr = chainAutoCount > 1 ? `${chainAutoCount}x ` : '';
             result.push(`1. ${chainAutoCountStr}${allChainSkillsStr}`);
           }
@@ -381,7 +385,7 @@ function App() {
             const allChainSkillsStr = ids
               .slice(0, nonChainAutoCount)
               .map((skillId) => format.skill(skillId))
-              .join(' --> ');
+              .join(` ${format.arrow()} `);
             result.push(`1. ${allChainSkillsStr}`);
           }
 
