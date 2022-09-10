@@ -416,16 +416,6 @@ function App() {
         </a>
         .)
       </div>
-      <label>
-        enter dps.report url:{' '}
-        <input
-          type="text"
-          onChange={(e) => {
-            setUrl(e.target.value);
-          }}
-        />
-      </label>
-      <div>status: {status}</div>
       <div className={settings}>
         <label>
           preferred skillname length for editing:{' '}
@@ -483,19 +473,37 @@ function App() {
       </div>
       <div className={horizontalFlexContainer}>
         <div className={importedSection}>
-          <h3>Imported Rotation</h3>
-          <RotationDisplay rotation={rotationUncombined} />
+          <div className={verticalFlexContainer}>
+            <h3>Import Rotation</h3>
+            <label>
+              enter dps.report url:{' '}
+              <input
+                type="text"
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                }}
+              />
+            </label>
+            <div>status: {status}</div>
+          </div>
+          <RotationDisplay style={{ minHeight: '500px' }} rotation={rotationUncombined} />
         </div>
         <div className={exportedSection}>
-          <h3>Rotation Editor</h3>
-          <label>
-            copy imported rotation to editable form
-            <button id="copybutton" type="button" onClick={() => setTextBox(serializedLogRotation)}>
-              import!
-            </button>
-          </label>
+          <div className={verticalFlexContainer}>
+            <h3>Edit Rotation</h3>
+            <label>
+              copy imported rotation to editor:
+              <button
+                id="copybutton"
+                type="button"
+                onClick={() => setTextBox(serializedLogRotation)}
+              >
+                click here!
+              </button>
+            </label>
+          </div>
           <div>
-            <b>regular skills: </b>
+            <b>regular skills shorthand: </b>
             <div>
               {Object.values(skillDictionary)
                 .filter(({ instant }) => !instant)
@@ -504,7 +512,7 @@ function App() {
             </div>
           </div>
           <div>
-            <b>instant skills: </b>
+            <b>instant skills shorthand: </b>
             <div>
               {Object.values(skillDictionary)
                 .filter(({ instant }) => instant)

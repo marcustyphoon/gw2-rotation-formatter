@@ -1,5 +1,7 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 
+export const info = style({ margin: 'auto', color: 'rgb(128, 128, 128)' }, 'info');
+
 const rowHeight = '1.8em';
 
 export const container = style(

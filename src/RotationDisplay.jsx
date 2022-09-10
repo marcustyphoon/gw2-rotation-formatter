@@ -2,7 +2,7 @@
 import { Skill } from '@discretize/gw2-ui-new';
 import { Fragment } from 'react';
 import { WEAPON_SWAP } from './constants';
-import { cancelledSkill, container, row, rowLabel, blockSkill } from './RotationDisplay.css';
+import { info, cancelledSkill, container, row, rowLabel, blockSkill } from './RotationDisplay.css';
 
 function BlockSkill({ ...props }) {
   return <Skill className={blockSkill} disableText {...props} />;
@@ -58,21 +58,26 @@ export default function RotationDisplay({
   rotation,
   splitAutoChains = true,
   showInstantsAsInstant = true,
+  style,
 }) {
-  return (
-    <div className={container}>
-      {rotation.map(({ skillSequence, label }, rowIndex) => (
-        <div className={row} key={rowIndex}>
-          <div className={rowLabel}>{label}: </div>
-          {skillSequence.map(({ id, cancelled, count, data }, i) => (
-            <RotationSkill
-              {...{ id, cancelled, count, data }}
-              {...{ splitAutoChains, showInstantsAsInstant }}
-              key={i}
-            />
-          ))}
-        </div>
+  const sequence = rotation.map(({ skillSequence, label }, rowIndex) => (
+    <div className={row} key={rowIndex}>
+      <div className={rowLabel}>{label}: </div>
+      {skillSequence.map(({ id, cancelled, count, data }, i) => (
+        <RotationSkill
+          {...{ id, cancelled, count, data }}
+          {...{ splitAutoChains, showInstantsAsInstant }}
+          key={i}
+        />
       ))}
+    </div>
+  ));
+
+  const nothing = <div className={info}>No rotation data to display.</div>;
+
+  return (
+    <div className={container} style={style}>
+      {rotation.length ? sequence : nothing}
     </div>
   );
 }

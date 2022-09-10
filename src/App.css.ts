@@ -61,7 +61,6 @@ export const outputTextBox = style(
   {
     padding: '0.5em',
     minHeight: '200px',
-    width: '500px',
     maxHeight: '600px',
     outline: '1px solid grey',
     overflow: 'scroll',
