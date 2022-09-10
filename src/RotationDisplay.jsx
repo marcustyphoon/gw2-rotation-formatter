@@ -2,7 +2,15 @@
 import { Skill } from '@discretize/gw2-ui-new';
 import { Fragment } from 'react';
 import { WEAPON_SWAP } from './constants';
-import { info, cancelledSkill, container, row, rowLabel, blockSkill } from './RotationDisplay.css';
+import {
+  info,
+  cancelledSkill,
+  instantSkill,
+  container,
+  row,
+  rowLabel,
+  blockSkill,
+} from './RotationDisplay.css';
 
 function BlockSkill({ ...props }) {
   return <Skill className={blockSkill} disableText {...props} />;
@@ -17,7 +25,9 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
   };
   let content = '';
 
-  const className = cancelled ? cancelledSkill : undefined;
+  let className;
+  if (cancelled) className = cancelledSkill;
+  if (instant && !showInstantsAsInstant) className = instantSkill;
 
   if (isSwap || id === WEAPON_SWAP) {
     content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
@@ -35,6 +45,19 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
         >
           <BlockSkill id={skillId} />
         </div>
+      </div>
+    );
+  } else if (instant && !showInstantsAsInstant) {
+    content = (skillId) => (
+      <div
+        className={className}
+        style={{
+          position: 'relative',
+          top: '0.5em',
+          fontSize: autoAttack ? '0.7em' : '1em',
+        }}
+      >
+        <BlockSkill id={skillId} />
       </div>
     );
   } else {

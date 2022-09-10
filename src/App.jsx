@@ -10,6 +10,7 @@ import {
   verticalFlexContainer,
   importedSection,
   exportedSection,
+  shorthandBlurb,
   outputTextBox,
   horizontalFlexContainer,
   settings,
@@ -404,7 +405,8 @@ function App() {
 
   return (
     <div className={verticalFlexContainer}>
-      <h2>dps.report to sc site rotation</h2>
+      <h2>gw2 rotation formatter</h2>
+      <div>import and edit skill rotations and format them for the [SC] and [dT] websites.</div>
       <div>
         (very wip.{' '}
         <a
@@ -468,7 +470,7 @@ function App() {
           />
         </label>
         <div>
-          <em>(pressing import again after changing settings is a good idea.)</em>
+          <em>(pressing copy again after changing settings is a good idea.)</em>
         </div>
       </div>
       <div className={horizontalFlexContainer}>
@@ -502,22 +504,24 @@ function App() {
               </button>
             </label>
           </div>
-          <div>
+          <div className={shorthandBlurb}>
             <b>regular skills shorthand: </b>
             <div>
+              -{' '}
               {Object.values(skillDictionary)
                 .filter(({ instant }) => !instant)
                 .map(({ shortName }) => shortName)
-                .join(', ')}
+                .join(', ') || <em>none!</em>}
             </div>
           </div>
-          <div>
+          <div className={shorthandBlurb}>
             <b>instant skills shorthand: </b>
             <div>
+              -{' '}
               {Object.values(skillDictionary)
                 .filter(({ instant }) => instant)
                 .map(({ shortName }) => shortName)
-                .join(', ') || 'none!'}
+                .join(', ') || <em>none!</em>}
             </div>
           </div>
           <textarea

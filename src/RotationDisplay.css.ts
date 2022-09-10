@@ -47,3 +47,5 @@ export const cancelledSkill = style({}, 'cancelledSkill');
 globalStyle(`${cancelledSkill} > *`, {
   border: '2px solid red',
 });
+
+export const instantSkill = style({ opacity: 0.65 }, 'instantSkill');

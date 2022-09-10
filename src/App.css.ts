@@ -2,7 +2,7 @@ import { globalStyle, style } from '@vanilla-extract/css';
 
 globalStyle('#root', {
   width: '100%',
-  margin: '1em',
+  margin: '1.5em',
 });
 
 export const verticalFlexContainer = style(
@@ -47,6 +47,8 @@ export const exportedSection = style(
   },
   'exportedRotation',
 );
+
+export const shorthandBlurb = style({ margin: '0.5em' }, 'shorthandBlurb');
 
 export const skillTextBox = style(
   {
