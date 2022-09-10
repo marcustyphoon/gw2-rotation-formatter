@@ -357,42 +357,43 @@ function App() {
         : `<Skill id="${id}"/>`,
   };
 
-  const formatData = (format) => parsedTextBoxRotation.map(({ label, skillSequence }) => {
-    const formattedData = skillSequence.map(({ id, data, count }) => {
-      const { isSwap, idsSet } = data ?? { isSwap: false, idsSet: new Set([id]) };
-      if (isSwap || id === WEAPON_SWAP) return format.weaponSwap();
+  const formatData = (format) =>
+    parsedTextBoxRotation.map(({ label, skillSequence }) => {
+      const formattedData = skillSequence.map(({ id, data, count }) => {
+        const { isSwap, idsSet } = data ?? { isSwap: false, idsSet: new Set([id]) };
+        if (isSwap || id === WEAPON_SWAP) return format.weaponSwap();
 
-      const ids = [...idsSet];
+        const ids = [...idsSet];
 
-      if (ids.length > 1 && splitAutoChainsPref) {
-        const nonChainAutoCount = count % ids.length;
-        const chainAutoCount = Math.floor(count / ids.length);
+        if (ids.length > 1 && splitAutoChainsPref) {
+          const nonChainAutoCount = count % ids.length;
+          const chainAutoCount = Math.floor(count / ids.length);
 
-        const result = [];
+          const result = [];
 
-        if (chainAutoCount) {
-          const allChainSkillsStr = ids.map((skillId) => format.skill(skillId)).join(' --> ');
-          const chainAutoCountStr = chainAutoCount > 1 ? `${count}x ` : '';
-          result.push(`1. ${chainAutoCountStr}${allChainSkillsStr}`);
+          if (chainAutoCount) {
+            const allChainSkillsStr = ids.map((skillId) => format.skill(skillId)).join(' --> ');
+            const chainAutoCountStr = chainAutoCount > 1 ? `${count}x ` : '';
+            result.push(`1. ${chainAutoCountStr}${allChainSkillsStr}`);
+          }
+
+          if (nonChainAutoCount) {
+            const allChainSkillsStr = ids
+              .slice(0, nonChainAutoCount)
+              .map((skillId) => format.skill(skillId))
+              .join(' --> ');
+            result.push(`1. ${allChainSkillsStr}`);
+          }
+
+          return result.join('\n');
         }
 
-        if (nonChainAutoCount) {
-          const allChainSkillsStr = ids
-            .slice(0, nonChainAutoCount)
-            .map((skillId) => format.skill(skillId))
-            .join(' --> ');
-          result.push(`1. ${allChainSkillsStr}`);
-        }
+        const countStr = count > 1 ? `${count}x ` : '';
+        return `1. ${countStr}${format.skill(id)}`;
+      });
 
-        return result.join('\n');
-      }
-
-      const countStr = count > 1 ? `${count}x ` : '';
-      return `1. ${countStr}${format.skill(id)}`;
+      return format.label(label) + '\n\n' + formattedData.join('\n') + '\n\n';
     });
-
-    return format.label(label) + '\n\n' + formattedData.join('\n') + '\n\n';
-  });
 
   const snowCrowsOutput = formatData(scFormat);
   const discretizeOutput = formatData(dtFormat);
