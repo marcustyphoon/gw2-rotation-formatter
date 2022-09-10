@@ -373,7 +373,7 @@ function App() {
 
           if (chainAutoCount) {
             const allChainSkillsStr = ids.map((skillId) => format.skill(skillId)).join(' --> ');
-            const chainAutoCountStr = chainAutoCount > 1 ? `${count}x ` : '';
+            const chainAutoCountStr = chainAutoCount > 1 ? `${chainAutoCount}x ` : '';
             result.push(`1. ${chainAutoCountStr}${allChainSkillsStr}`);
           }
 
