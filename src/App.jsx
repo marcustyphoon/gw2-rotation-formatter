@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react';
 import {
   container,
   exportedRotation,
-  importedRotation,
   outputTextBox,
   rotationContainer,
   settings,
@@ -452,7 +451,7 @@ function App() {
         </div>
       </div>
       <div className={rotationContainer}>
-        <div className={importedRotation}>
+        <div>
           <h3>imported rotation</h3>
           <RotationDisplay rotation={rotationUncombined} />
         </div>

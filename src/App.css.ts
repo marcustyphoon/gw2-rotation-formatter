@@ -26,14 +26,14 @@ export const settings = style(
 );
 
 export const rotationContainer = style({ display: 'flex', width: '100%' }, 'rotationContainer');
-export const rotationSection = style({ flex: 1 });
+globalStyle(`${rotationContainer} > *`, {
+  flex: 1,
+});
 
-export const importedRotation = style([rotationSection], 'importedRotation');
-export const exportedRotation = style([
-  rotationSection,
+export const exportedRotation = style(
   { display: 'flex', flexDirection: 'column' },
   'exportedRotation',
-]);
+);
 
 export const skillTextBox = style({ resize: 'vertical', height: '200px' }, 'skillTextBox');
 
