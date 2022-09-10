@@ -25,6 +25,8 @@ const skillBlacklist = [
   9428, // hydromancy
 ];
 
+const DEMO_URL = 'https://dps.report/9nH4-20220717-181537_golem';
+
 function App() {
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState('waiting...');
@@ -481,11 +483,15 @@ function App() {
               enter dps.report url:{' '}
               <input
                 type="text"
+                value={url}
                 onChange={(e) => {
                   setUrl(e.target.value);
                 }}
               />
             </label>
+            <button type="button" onClick={() => setUrl(DEMO_URL)}>
+              (load demo)
+            </button>
             <div>status: {status}</div>
           </div>
           <RotationDisplay style={{ minHeight: '500px' }} rotation={rotationUncombined} />
