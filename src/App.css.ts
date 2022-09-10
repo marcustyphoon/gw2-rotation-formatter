@@ -5,12 +5,12 @@ globalStyle('#root', {
   margin: '1em',
 });
 
-export const container = style(
+export const verticalFlexContainer = style(
   {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    rowGap: '0.5em',
+    rowGap: '1em',
   },
   'container',
 );
@@ -21,28 +21,51 @@ export const settings = style(
     display: 'flex',
     flexDirection: 'column',
     padding: '0.5em',
+    borderRadius: '0.5em',
   },
   'settings',
 );
 
-export const rotationContainer = style({ display: 'flex', width: '100%' }, 'rotationContainer');
-globalStyle(`${rotationContainer} > *`, {
+export const horizontalFlexContainer = style(
+  {
+    display: 'flex',
+    width: '100%',
+    columnGap: '1em',
+  },
+  'horizontalFlexContainer',
+);
+globalStyle(`${horizontalFlexContainer} > *`, {
   flex: 1,
 });
 
-export const exportedRotation = style(
-  { display: 'flex', flexDirection: 'column' },
+export const importedSection = style({}, 'importedSection');
+
+export const exportedSection = style(
+  {
+    display: 'flex',
+    flexDirection: 'column',
+  },
   'exportedRotation',
 );
 
-export const skillTextBox = style({ resize: 'vertical', height: '200px' }, 'skillTextBox');
+export const skillTextBox = style(
+  {
+    resize: 'vertical',
+    height: '200px',
+    margin: '0.5em',
+  },
+  'skillTextBox',
+);
 
 export const outputTextBox = style(
   {
+    padding: '0.5em',
+    minHeight: '200px',
     width: '500px',
-    maxHeight: '500px',
+    maxHeight: '600px',
     outline: '1px solid grey',
     overflow: 'scroll',
+    userSelect: 'all',
   },
   'outputTextBox',
 );

@@ -1,12 +1,19 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 
+const rowHeight = '1.8em';
+
 export const container = style(
   {
+    backgroundColor: 'rgba(128, 128, 128, 0.1)',
+    borderRadius: '0.5em',
+    padding: '0.5em',
+    margin: '0.25em',
     maxWidth: '1280px',
+    minHeight: '280px',
     display: 'flex',
     flexDirection: 'column',
-    rowGap: '25px',
-    fontSize: '25px',
+    rowGap: '1em',
+    fontSize: '28px',
   },
   'container',
 );
@@ -16,9 +23,25 @@ export const row = style(
     display: 'flex',
     flexWrap: 'wrap',
     alignItems: 'center',
-    minHeight: '40px',
+    minHeight: rowHeight,
   },
   'row',
 );
+globalStyle(`${row} > *`, {
+  height: rowHeight,
+  display: 'flex',
+  alignItems: 'center',
+});
 
-export const cancelledSkill = style({ border: '2px solid red' }, 'cancelledSkill');
+// overrides gw2-ui inline flex
+export const blockSkill = style({});
+globalStyle(`${blockSkill} > *`, {
+  display: 'flex',
+});
+
+export const rowLabel = style({ minWidth: '2.5ch' }, 'rowLabel');
+
+export const cancelledSkill = style({}, 'cancelledSkill');
+globalStyle(`${cancelledSkill} > *`, {
+  border: '2px solid red',
+});

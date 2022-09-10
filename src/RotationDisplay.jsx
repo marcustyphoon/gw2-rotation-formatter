@@ -2,7 +2,11 @@
 import { Skill } from '@discretize/gw2-ui-new';
 import { Fragment } from 'react';
 import { WEAPON_SWAP } from './constants';
-import { cancelledSkill, container, row } from './RotationDisplay.css';
+import { cancelledSkill, container, row, rowLabel, blockSkill } from './RotationDisplay.css';
+
+function BlockSkill({ ...props }) {
+  return <Skill className={blockSkill} disableText {...props} />;
+}
 
 function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstantsAsInstant }) {
   const { idsSet, isSwap, autoAttack, instant } = data ?? {
@@ -21,20 +25,22 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
     content = (skillId) => (
       <div style={{ width: 0 }}>
         <div
+          className={className}
           style={{
             position: 'relative',
-            top: '20px',
+            top: '1em',
+            left: '-0.85em',
             fontSize: autoAttack ? '0.7em' : '1em',
           }}
         >
-          <Skill id={skillId} disableText />
+          <BlockSkill id={skillId} />
         </div>
       </div>
     );
   } else {
     content = (skillId) => (
-      <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>
-        <Skill id={skillId} disableText className={className} />
+      <div className={className} style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>
+        <BlockSkill id={skillId} />
       </div>
     );
   }
@@ -57,7 +63,7 @@ export default function RotationDisplay({
     <div className={container}>
       {rotation.map(({ skillSequence, label }, rowIndex) => (
         <div className={row} key={rowIndex}>
-          {label}:
+          <div className={rowLabel}>{label}: </div>
           {skillSequence.map(({ id, cancelled, count, data }, i) => (
             <RotationSkill
               {...{ id, cancelled, count, data }}

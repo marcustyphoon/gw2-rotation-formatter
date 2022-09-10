@@ -7,10 +7,11 @@ import '@discretize/gw2-ui-new/dist/index.css';
 import '@discretize/typeface-menomonia';
 import { useEffect, useState } from 'react';
 import {
-  container,
-  exportedRotation,
+  verticalFlexContainer,
+  importedSection,
+  exportedSection,
   outputTextBox,
-  rotationContainer,
+  horizontalFlexContainer,
   settings,
   skillTextBox,
 } from './App.css';
@@ -372,7 +373,7 @@ function App() {
   });
 
   return (
-    <div className={container}>
+    <div className={verticalFlexContainer}>
       <h2>dps.report to sc site rotation</h2>
       <div>
         (very wip.{' '}
@@ -450,13 +451,13 @@ function App() {
           <em>(pressing import again after changing settings is a good idea.)</em>
         </div>
       </div>
-      <div className={rotationContainer}>
-        <div>
-          <h3>imported rotation</h3>
+      <div className={horizontalFlexContainer}>
+        <div className={importedSection}>
+          <h3>Imported Rotation</h3>
           <RotationDisplay rotation={rotationUncombined} />
         </div>
-        <div className={exportedRotation}>
-          <h3>edit rotation</h3>
+        <div className={exportedSection}>
+          <h3>Rotation Editor</h3>
           <label>
             copy imported rotation to editable form
             <button id="copybutton" type="button" onClick={() => setTextBox(serializedLogRotation)}>
@@ -478,7 +479,7 @@ function App() {
               {Object.values(skillDictionary)
                 .filter(({ instant }) => instant)
                 .map(({ shortName }) => shortName)
-                .join(', ')}
+                .join(', ') || 'none!'}
             </div>
           </div>
           <textarea
@@ -494,8 +495,12 @@ function App() {
           />
         </div>
       </div>
-      <div>
-        <pre className={outputTextBox}>{snowCrowsOutput}</pre>
+      <h3>Formatted Output</h3>
+      <div className={horizontalFlexContainer}>
+        <div>
+          Snow Crows website style:
+          <pre className={outputTextBox}>{snowCrowsOutput}</pre>
+        </div>
       </div>
     </div>
   );
