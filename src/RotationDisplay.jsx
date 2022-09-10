@@ -17,7 +17,7 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
   };
   let content = '';
 
-  const className = cancelled ? cancelledSkill : false;
+  const className = cancelled ? cancelledSkill : undefined;
 
   if (isSwap || id === WEAPON_SWAP) {
     content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
