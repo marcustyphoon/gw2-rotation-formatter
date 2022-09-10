@@ -25,7 +25,7 @@ const skillBlacklist = [
   9428, // hydromancy
 ];
 
-const DEMO_URL = 'https://dps.report/9nH4-20220717-181537_golem';
+const DEMO_URL = 'https://dps.report/ulws-20220804-153218_golem';
 
 function App() {
   const [url, setUrl] = useState('');
