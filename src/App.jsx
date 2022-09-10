@@ -132,8 +132,14 @@ function App() {
             });
           })
           .filter(({ id, cancelled }) => {
+            // remove cancelled skills (only autoattacks if preference flipped)
             const { autoAttack } = eiSkillMap[`s${id}`];
             return cancelled === false || (includeCancelledPref && autoAttack === false);
+          })
+          .filter(({ id, instant }) => {
+            // remove 0ms autoattacks (they don't show up as cancelled for some reason)
+            const { autoAttack } = eiSkillMap[`s${id}`];
+            return (autoAttack && instant) === false;
           })
           .filter(({ id }) => skillBlacklist.includes(id) === false)
           .sort((a, b) => a.castTime - b.castTime);
