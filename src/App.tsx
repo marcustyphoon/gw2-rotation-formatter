@@ -7,17 +7,27 @@ import '@discretize/gw2-ui-new/dist/index.css';
 import '@discretize/typeface-menomonia';
 import { useEffect, useState } from 'react';
 import {
-  verticalFlexContainer,
-  importedSection,
   exportedSection,
-  shorthandBlurb,
-  outputTextBox,
   horizontalFlexContainer,
+  importedSection,
+  outputTextBox,
   settings,
+  shorthandBlurb,
   skillTextBox,
+  verticalFlexContainer,
 } from './App.css';
 import { WEAPON_SWAP } from './constants';
 import RotationDisplay from './RotationDisplay';
+import type {
+  dpsReportData,
+  generatedRotation,
+  generatedSkillCast,
+  rotation,
+  rotationFormat,
+  skillSequence,
+  skillTypeDictionary,
+  skillTypeDictionaryEntry,
+} from './types';
 
 const skillBlacklist = [
   9292, // air
@@ -28,89 +38,6 @@ const skillBlacklist = [
 const DEFAULT_NAME_LENGTH_PREF = 10;
 
 const DEMO_URL = 'https://dps.report/ulws-20220804-153218_golem';
-
-/**
- * imported elite insights data (incomplete)
- */
-interface eiSkillCastEntry {
-  castTime: number;
-  duration: number;
-  timeGained: number;
-  quickness: number;
-}
-interface eiSkillEntry {
-  id: number;
-  skills: eiSkillCastEntry[];
-}
-interface playerData {
-  rotation: eiSkillEntry[];
-  name: string;
-}
-interface eiSkillMapEntry {
-  name: string;
-  autoAttack: boolean;
-  isSwap: boolean;
-  canCrit: boolean;
-  icon: string;
-}
-interface dpsReportData {
-  players: playerData[];
-  skillMap: Record<string, eiSkillMapEntry>;
-  recordedBy: string;
-}
-
-/**
- * internal skill dictionary
- */
-interface skillTypeDictionaryEntry {
-  name: string;
-  id: number;
-  idsSet: Set<number>;
-  isSwap: boolean;
-  autoAttack: boolean;
-  instant: boolean;
-  shortName: string;
-}
-type skillTypeDictionary = Record<number, skillTypeDictionaryEntry>;
-
-/**
- * internal rotation format
- */
-interface generatedSkillCast {
-  id: number;
-  data?: skillTypeDictionaryEntry;
-  castTime?: number;
-  instant?: boolean;
-  cancelled?: boolean;
-  count: number;
-}
-type skillCast = Required<generatedSkillCast>;
-
-// lax; can be missing data
-type generatedSkillSequence = generatedSkillCast[];
-interface generatedRotationSkillSequence {
-  label: string;
-  skillSequence: generatedSkillSequence;
-}
-type generatedRotation = generatedRotationSkillSequence[];
-
-// strict
-type skillSequence = skillCast[];
-interface rotationSkillSequence {
-  label: string;
-  skillSequence: skillSequence;
-}
-type rotation = rotationSkillSequence[];
-
-/**
- * used for text output formatting
- */
-interface rotationFormat {
-  label: (label: string) => string;
-  weaponSwap: () => string;
-  skill: (id: number) => string;
-  arrow: () => string;
-}
 
 function App() {
   const [url, setUrl] = useState<string>('');

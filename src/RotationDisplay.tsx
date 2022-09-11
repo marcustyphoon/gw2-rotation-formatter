@@ -11,28 +11,45 @@ import {
   rowLabel,
   blockSkill,
 } from './RotationDisplay.css';
+import type { generatedRotation, skillTypeDictionaryEntry } from './types';
 
-function BlockSkill({ id, ...rest }) {
-  return <Skill className={blockSkill} disableText id={id} {...rest} />;
+function BlockSkill({ id }: { id: number }) {
+  return <Skill className={blockSkill} disableText id={id} />;
 }
 
-function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstantsAsInstant }) {
+interface RotationSkillProps {
+  id: number;
+  cancelled?: boolean;
+  count: number;
+  data?: skillTypeDictionaryEntry;
+  splitAutoChains: boolean;
+  showInstantsAsInstant: boolean;
+}
+
+function RotationSkill({
+  id,
+  cancelled,
+  count,
+  data,
+  splitAutoChains,
+  showInstantsAsInstant,
+}: RotationSkillProps) {
   const { idsSet, isSwap, autoAttack, instant } = data ?? {
     idsSet: new Set([id]),
     isSwap: false,
     autoAttack: false,
     instant: false,
   };
-  let content;
+  let content: (skillId: number) => JSX.Element;
 
-  let className;
+  let className: string;
   if (cancelled) className = cancelledSkill;
   if (instant && !showInstantsAsInstant) className = instantSkill;
 
   if (isSwap || id === WEAPON_SWAP) {
     content = () => <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
   } else if (instant && showInstantsAsInstant) {
-    content = (skillId) => (
+    content = (skillId: number) => (
       <div style={{ width: 0 }}>
         <div
           className={className}
@@ -82,12 +99,19 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
 }
 const RotationSkillMemo = React.memo(RotationSkill);
 
+interface RotationDisplayProps {
+  rotation: generatedRotation;
+  splitAutoChains?: boolean;
+  showInstantsAsInstant?: boolean;
+  style?: React.CSSProperties;
+}
+
 export default function RotationDisplay({
   rotation,
   splitAutoChains = true,
   showInstantsAsInstant = true,
   style = {},
-}) {
+}: RotationDisplayProps) {
   const sequence = rotation.map(({ skillSequence, label }, rowIndex) => (
     <div className={row} key={rowIndex}>
       <div className={rowLabel}>{label}: </div>

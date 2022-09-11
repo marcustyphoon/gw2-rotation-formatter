@@ -70,6 +70,10 @@
       { "argsIgnorePattern": "^e$|^_", "varsIgnorePattern": "^e$|^_" }
     ],
 
+    // suggested to use destructuring instead
+    // https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/default_props/
+    "react/require-default-props": "off",
+
     // prettier compat
     "arrow-body-style": "off",
     "prefer-arrow-callback": "off",
