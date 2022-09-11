@@ -12,8 +12,8 @@ import {
   blockSkill,
 } from './RotationDisplay.css';
 
-function BlockSkill({ ...props }) {
-  return <Skill className={blockSkill} disableText {...props} />;
+function BlockSkill({ id, ...rest }) {
+  return <Skill className={blockSkill} disableText id={id} {...rest} />;
 }
 
 function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstantsAsInstant }) {
@@ -23,14 +23,14 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
     autoAttack: false,
     instant: false,
   };
-  let content = '';
+  let content: React.FunctionComponent;
 
   let className;
   if (cancelled) className = cancelledSkill;
   if (instant && !showInstantsAsInstant) className = instantSkill;
 
   if (isSwap || id === WEAPON_SWAP) {
-    content = <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
+    content = () => <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
   } else if (instant && showInstantsAsInstant) {
     content = (skillId) => (
       <div style={{ width: 0 }}>
@@ -70,11 +70,15 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
 
   const ids = [...idsSet];
 
-  return Array(count)
-    .fill()
-    .map((_, i) => (
-      <Fragment key={i}>{content(splitAutoChains ? ids[i % ids.length] : id)}</Fragment>
-    ));
+  return (
+    <>
+      {Array(count)
+        .fill(undefined)
+        .map((_, i) => (
+          <Fragment key={i}>{content(splitAutoChains ? ids[i % ids.length] : id)}</Fragment>
+        ))}
+    </>
+  );
 }
 const RotationSkillMemo = React.memo(RotationSkill);
 
