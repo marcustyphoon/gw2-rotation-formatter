@@ -5,7 +5,7 @@
 import '@discretize/gw2-ui-new/dist/default_style.css';
 import '@discretize/gw2-ui-new/dist/index.css';
 import '@discretize/typeface-menomonia';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   verticalFlexContainer,
   importedSection,
@@ -25,22 +25,97 @@ const skillBlacklist = [
   9428, // hydromancy
 ];
 
+const DEFAULT_NAME_LENGTH_PREF = 10;
+
 const DEMO_URL = 'https://dps.report/ulws-20220804-153218_golem';
 
+/**
+ * imported elite insights data (incomplete)
+ */
+interface eiSkillCastEntry {
+  castTime: number;
+  duration: number;
+  timeGained: number;
+  quickness: number;
+}
+interface eiSkillEntry {
+  id: number;
+  skills: eiSkillCastEntry[];
+}
+interface playerData {
+  rotation: eiSkillEntry[];
+  name: string;
+}
+interface eiSkillMapEntry {
+  name: string;
+  autoAttack: boolean;
+  isSwap: boolean;
+  canCrit: boolean;
+  icon: string;
+}
+interface dpsReportData {
+  players: playerData[];
+  skillMap: Record<string, eiSkillMapEntry>;
+  recordedBy: string;
+}
+
+/**
+ * internal skill dictionary
+ */
+interface skillTypeDictionaryEntry {
+  name: string;
+  id: number;
+  idsSet: Set<number>;
+  isSwap: boolean;
+  autoAttack: boolean;
+  instant: boolean;
+  shortName: string;
+}
+type skillTypeDictionary = Record<number, skillTypeDictionaryEntry>;
+
+/**
+ * internal rotation format
+ */
+interface generatedSkillCast {
+  id: number;
+  data?: skillTypeDictionaryEntry;
+  castTime?: number;
+  instant?: boolean;
+  cancelled?: boolean;
+  count: number;
+}
+type skillCast = Required<generatedSkillCast>;
+
+// lax; can be missing data
+type generatedSkillSequence = generatedSkillCast[];
+interface generatedRotationSkillSequence {
+  label: string;
+  skillSequence: generatedSkillSequence;
+}
+type generatedRotation = generatedRotationSkillSequence[];
+
+// strict
+type skillSequence = skillCast[];
+interface rotationSkillSequence {
+  label: string;
+  skillSequence: skillSequence;
+}
+type rotation = rotationSkillSequence[];
+
 function App() {
-  const [url, setUrl] = useState('');
-  const [status, setStatus] = useState('waiting...');
-  const [dpsReportData, setDpsReportData] = useState(undefined);
+  const [url, setUrl] = useState<string>('');
+  const [status, setStatus] = useState<string>('waiting...');
+  const [dpsReportData, setDpsReportData] = useState<dpsReportData | undefined>(undefined);
 
-  const [nameLengthPref, setNameLengthPref] = useState(10);
-  const [includeInstantsPref, setIncludeInstantsPref] = useState(false);
-  const [includeCancelledPref, setIncludeCancelledPref] = useState(true);
-  const [splitAutoChainsPref, setSplitAutoChainsPref] = useState(true);
-  const [noSwapsPref, setNoSwapsPref] = useState(false);
+  const [nameLengthPref, setNameLengthPref] = useState<number>(DEFAULT_NAME_LENGTH_PREF);
+  const [includeInstantsPref, setIncludeInstantsPref] = useState<boolean>(false);
+  const [includeCancelledPref, setIncludeCancelledPref] = useState<boolean>(true);
+  const [splitAutoChainsPref, setSplitAutoChainsPref] = useState<boolean>(true);
+  const [noSwapsPref, setNoSwapsPref] = useState<boolean>(false);
 
-  const [skillDictionary, setSkillDictionary] = useState({});
-  const [rotationUncombined, setRotationUncombined] = useState([]);
-  const [serializedLogRotation, setSerializedLogRotation] = useState('');
+  const [skillDictionary, setSkillDictionary] = useState<skillTypeDictionary>({});
+  const [rotationUncombined, setRotationUncombined] = useState<rotation>([]);
+  const [serializedLogRotation, setSerializedLogRotation] = useState<string>('');
 
   const [textBox, setTextBox] = useState('');
 
@@ -84,45 +159,10 @@ function App() {
           return;
         }
 
-        /**
-         * @typedef eiSkillCastEntry
-         * @type {object}
-         * @property {number} castTime
-         * @property {number} duration
-         * @property {number} timeGained
-         * @property {number} quickness
-         */
-        /**
-         * @typedef eiSkillEntry
-         * @type {object}
-         * @property {number} id
-         * @property {eiSkillCastEntry[]} skills
-         */
-        /** @type {eiSkillEntry[]} */
         const eiSkillDataEntries = playerData.rotation;
 
-        /**
-         * @typedef eiSkillMapEntry
-         * @type {object}
-         * @property {string} name
-         * @property {boolean} autoAttack
-         * @property {boolean} isSwap
-         * @property {boolean} canCrit
-         * @property {string} icon
-         */
-        /** @type {Object.<string, eiSkillMapEntry>} */
         const eiSkillMap = dpsReportData.skillMap;
 
-        /**
-         * @typedef rawSkillCast
-         * @type {object}
-         * @property {number} id
-         * @property {number} castTime
-         * @property {boolean} instant
-         * @property {boolean} cancelled
-         */
-
-        /** @type {rawSkillCast[]} */
         const validRawSkillCasts = eiSkillDataEntries
           .flatMap(({ id, skills }) => {
             return skills.map(({ castTime, duration, timeGained }) => {
@@ -147,19 +187,7 @@ function App() {
           .filter(({ id }) => skillBlacklist.includes(id) === false)
           .sort((a, b) => a.castTime - b.castTime);
 
-        /**
-         * @typedef skillTypeDictionaryEntry
-         * @type {object}
-         * @property {number} id
-         * @property {Set} idsSet
-         * @property {boolean} isSwap
-         * @property {boolean} autoAttack
-         * @property {boolean} instant
-         * @property {string} shortName
-         */
-
-        /** @type {Object.<number, skillTypeDictionaryEntry>} */
-        const skillTypeDictionary = {};
+        const skillTypeDictionary: Record<number, skillTypeDictionaryEntry> = {};
         let autoAttackTypeCounter = 1;
         validRawSkillCasts.forEach(({ id, instant }) => {
           if (skillTypeDictionary[id]) return;
@@ -184,7 +212,7 @@ function App() {
               .join('');
           }
 
-          const hasDuplicateShortName = (nameToTest) =>
+          const hasDuplicateShortName = (nameToTest: string) =>
             Object.values(skillTypeDictionary).filter(
               ({ shortName: entryShortName }) => entryShortName === nameToTest,
             ).length;
@@ -209,36 +237,26 @@ function App() {
         });
         setSkillDictionary(skillTypeDictionary);
 
-        /**
-         * @typedef skillCast
-         * @type {object}
-         * @property {number} id
-         * @property {skillTypeDictionaryEntry?} data
-         * @property {number?} castTime
-         * @property {boolean?} instant
-         * @property {boolean?} cancelled
-         * @property {number?} count
-         */
-
-        /** @type {skillCast[]} */
-        const skillCasts = validRawSkillCasts.map(({ id, ...rest }) => ({
+        const skillCasts: skillSequence = validRawSkillCasts.map(({ id, ...rest }) => ({
           id,
           ...rest,
           data: skillTypeDictionary[id],
+          count: 1,
         }));
 
-        /** @type {skillCast[][]} */
-        const skillSequences = skillCasts
+        const skillSequences: skillSequence[] = skillCasts
           .reduce(
             (prev, cur) => {
               if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
                 prev.push([]);
               } else {
-                prev.at(-1).push(cur);
+                const previous = prev.at(-1);
+                if (!Array.isArray(previous)) throw new Error('skillSequences reducer error');
+                previous.push(cur);
               }
               return prev;
             },
-            [[]],
+            [[]] as skillSequence[],
           )
           .filter((skillSequence) => skillSequence.length);
 
@@ -249,20 +267,20 @@ function App() {
 
         setRotationUncombined(rotation);
 
-        /** @type {skillCast[][]} */
         const combinedSkillSequences = skillSequences.map((skillSequence) =>
           skillSequence
             .map((skillCast) => ({ ...skillCast, count: 1 }))
             .filter(({ instant }) => !instant || includeInstantsPref)
             .reduce((prev, cur) => {
-              if (cur.data.autoAttack && prev.at(-1)?.data.autoAttack) {
-                prev.at(-1).count += 1;
-                prev.at(-1).data.idsSet.add(cur.id);
+              const previous = prev.at(-1);
+              if (cur.data.autoAttack && previous?.data.autoAttack) {
+                previous.count += 1;
+                previous.data.idsSet.add(cur.id);
               } else {
                 prev.push(cur);
               }
               return prev;
-            }, []),
+            }, [] as skillSequence),
         );
 
         // eslint-disable-next-line no-console
@@ -296,7 +314,7 @@ function App() {
     }
   }, [dpsReportData, includeCancelledPref, includeInstantsPref, nameLengthPref, noSwapsPref]);
 
-  let parsedTextBoxRotation = [];
+  let parsedTextBoxRotation: generatedRotation = [];
 
   try {
     parsedTextBoxRotation = textBox
@@ -304,10 +322,9 @@ function App() {
       .filter(Boolean)
       .map((line, i) => {
         const splitLine = line.split(':');
-        const label = splitLine.length > 1 ? splitLine.at(0).trim() : i;
-        const skillSequenceString = splitLine.at(-1);
+        const label = splitLine.length > 1 ? splitLine[0].trim() : String(i);
+        const skillSequenceString = splitLine.at(-1) ?? '';
 
-        /** @type {skillCast[]} */
         const skillSequence = skillSequenceString
           .split(',')
           .map((str) => str.trim())
@@ -320,10 +337,10 @@ function App() {
               count = Number(splitString[0].trim().replaceAll('x', ''));
             }
 
-            const name = splitString.at(-1).trim();
+            const name = splitString.at(-1)?.trim();
 
             // if the user's string doesn't match, just use it as the ID
-            const fallback = [str];
+            const fallback = [str, undefined] as const;
 
             const [idString, data] =
               Object.entries(skillDictionary).find(([_, { shortName }]) => shortName === name) ??
@@ -332,7 +349,8 @@ function App() {
             // apparently gw2-ui fails if you give it a string ID... only if it has overrides
             const id = Number(idString);
 
-            return { id, data, count };
+            const result: generatedSkillCast = { id, data, count };
+            return result;
           });
 
         return {
@@ -374,7 +392,7 @@ function App() {
           const nonChainAutoCount = count % ids.length;
           const chainAutoCount = Math.floor(count / ids.length);
 
-          const result = [];
+          const result: string[] = [];
 
           if (chainAutoCount) {
             const allChainSkillsStr = ids
@@ -427,7 +445,7 @@ function App() {
             type="number"
             value={nameLengthPref}
             onChange={(e) => {
-              setNameLengthPref(e.target.value);
+              setNameLengthPref(Number(e.target.value) || DEFAULT_NAME_LENGTH_PREF);
             }}
           />
         </label>

@@ -82,7 +82,7 @@ export default function RotationDisplay({
   rotation,
   splitAutoChains = true,
   showInstantsAsInstant = true,
-  style,
+  style = {},
 }) {
   const sequence = rotation.map(({ skillSequence, label }, rowIndex) => (
     <div className={row} key={rowIndex}>
