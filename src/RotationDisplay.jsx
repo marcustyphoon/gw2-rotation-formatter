@@ -23,7 +23,7 @@ function RotationSkill({ id, cancelled, count, data, splitAutoChains, showInstan
     autoAttack: false,
     instant: false,
   };
-  let content: React.FunctionComponent;
+  let content;
 
   let className;
   if (cancelled) className = cancelledSkill;
