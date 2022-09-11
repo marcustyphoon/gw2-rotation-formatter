@@ -1,7 +1,7 @@
 import React from 'react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 
-export default function ErrorBoundary({ children, resetKeys }) {
+export default function ErrorBoundary({ children, resetKeys = undefined }) {
   const fallbackRender = React.useCallback(function FallbackComponent({ error }) {
     return (
       <div>

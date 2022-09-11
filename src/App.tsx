@@ -5,7 +5,7 @@
 import '@discretize/gw2-ui-new/dist/default_style.css';
 import '@discretize/gw2-ui-new/dist/index.css';
 import '@discretize/typeface-menomonia';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   verticalFlexContainer,
   importedSection,
@@ -102,6 +102,16 @@ interface rotationSkillSequence {
 }
 type rotation = rotationSkillSequence[];
 
+/**
+ * used for text output formatting
+ */
+interface rotationFormat {
+  label: (label: string) => string;
+  weaponSwap: () => string;
+  skill: (id: number) => string;
+  arrow: () => string;
+}
+
 function App() {
   const [url, setUrl] = useState<string>('');
   const [status, setStatus] = useState<string>('waiting...');
@@ -192,7 +202,7 @@ function App() {
         validRawSkillCasts.forEach(({ id, instant }) => {
           if (skillTypeDictionary[id]) return;
 
-          // eslint-disable-next-line no-unused-vars
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { name, autoAttack, isSwap: realIsSwap, canCrit, icon } = eiSkillMap[`s${id}`];
 
           const isSwap = noSwapsPref ? false : realIsSwap;
@@ -363,14 +373,14 @@ function App() {
     console.error(error);
   }
 
-  const scFormat = {
+  const scFormat: rotationFormat = {
     label: (label) => `## ${label}`,
     weaponSwap: () => '1. [sc:202][/sc]',
     skill: (id) => `[gw2:${id}:skill]`,
     arrow: () => '-->',
   };
 
-  const dtFormat = {
+  const dtFormat: rotationFormat = {
     label: (label) => `${label}:`,
     weaponSwap: () => '1. swap',
     skill: (id) =>
@@ -380,7 +390,7 @@ function App() {
     arrow: () => '-',
   };
 
-  const formatData = (format) =>
+  const formatData = (format: rotationFormat) =>
     parsedTextBoxRotation.map(({ label, skillSequence }) => {
       const formattedData = skillSequence.map(({ id, data, count }) => {
         const { isSwap, idsSet } = data ?? { isSwap: false, idsSet: new Set([id]) };
