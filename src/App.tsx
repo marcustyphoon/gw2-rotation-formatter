@@ -45,6 +45,7 @@ function App() {
   const [dpsReportData, setDpsReportData] = useState<dpsReportData | undefined>(undefined);
 
   const [nameLengthPref, setNameLengthPref] = useState<number>(DEFAULT_NAME_LENGTH_PREF);
+  const [includeSwaps, setIncludeSwapsPref] = useState<boolean>(true);
   const [includeInstantsPref, setIncludeInstantsPref] = useState<boolean>(false);
   const [includeCancelledPref, setIncludeCancelledPref] = useState<boolean>(true);
   const [splitAutoChainsPref, setSplitAutoChainsPref] = useState<boolean>(true);
@@ -184,12 +185,18 @@ function App() {
         const skillSequences: skillSequence[] = skillCasts
           .reduce(
             (prev, cur) => {
-              if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
-                prev.push([]);
-              } else {
+              const pushThis = () => {
                 const previous = prev.at(-1);
                 if (!Array.isArray(previous)) throw new Error('skillSequences reducer error');
                 previous.push(cur);
+              };
+              const endSequence = () => prev.push([]);
+
+              if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
+                if (includeSwaps) pushThis();
+                endSequence();
+              } else {
+                pushThis();
               }
               return prev;
             },
@@ -207,7 +214,10 @@ function App() {
         const combinedSkillSequences = skillSequences.map((skillSequence) =>
           skillSequence
             .map((skillCast) => ({ ...skillCast, count: 1 }))
-            .filter(({ instant }) => !instant || includeInstantsPref)
+            .filter(({ instant, id, data: { isSwap } }) => {
+              if (isSwap || id === WEAPON_SWAP) return true;
+              return !instant || includeInstantsPref;
+            })
             .reduce((prev, cur) => {
               const previous = prev.at(-1);
               if (cur.data.autoAttack && previous?.data.autoAttack) {
@@ -249,7 +259,14 @@ function App() {
         setStatus(String(e));
       }
     }
-  }, [dpsReportData, includeCancelledPref, includeInstantsPref, nameLengthPref, noSwapsPref]);
+  }, [
+    dpsReportData,
+    includeCancelledPref,
+    includeInstantsPref,
+    includeSwaps,
+    nameLengthPref,
+    noSwapsPref,
+  ]);
 
   let parsedTextBoxRotation: generatedRotation = [];
 
@@ -383,6 +400,16 @@ function App() {
             value={nameLengthPref}
             onChange={(e) => {
               setNameLengthPref(Number(e.target.value) || DEFAULT_NAME_LENGTH_PREF);
+            }}
+          />
+        </label>
+        <label>
+          include weapon swaps as skills:{' '}
+          <input
+            type="checkbox"
+            checked={includeSwaps}
+            onChange={(e) => {
+              setIncludeSwapsPref(e.target.checked);
             }}
           />
         </label>
