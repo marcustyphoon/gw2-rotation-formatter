@@ -1,5 +1,5 @@
 /* eslint-disable react/no-array-index-key */
-import { Skill } from '@discretize/gw2-ui-new';
+import { Skill, Icon } from '@discretize/gw2-ui-new';
 import React, { Fragment } from 'react';
 import { WEAPON_SWAP } from './constants';
 import {
@@ -46,8 +46,12 @@ function RotationSkill({
   if (cancelled) className = cancelledSkill;
   if (instant && !showInstantsAsInstant) className = instantSkill;
 
-  if (isSwap || id === WEAPON_SWAP) {
-    content = () => <div style={{ fontSize: autoAttack ? '0.7em' : '1em' }}>-</div>;
+  if (id === WEAPON_SWAP) {
+    content = () => (
+      <div style={{ fontSize: '0.7em' }}>
+        <Icon name="WeaponSwap" />
+      </div>
+    );
   } else if (instant && showInstantsAsInstant) {
     content = (skillId: number) => (
       <div style={{ width: 0 }}>
