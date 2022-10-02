@@ -184,7 +184,7 @@ function App() {
 
         const skillSequences: skillSequence[] = skillCasts
           .reduce(
-            (prev, cur) => {
+            (prev: skillSequence[], cur) => {
               const pushThis = () => {
                 const previous = prev.at(-1);
                 if (!Array.isArray(previous)) throw new Error('skillSequences reducer error');
@@ -200,7 +200,7 @@ function App() {
               }
               return prev;
             },
-            [[]] as skillSequence[],
+            [[]],
           )
           .filter((skillSequence) => skillSequence.length);
 
@@ -218,7 +218,7 @@ function App() {
               if (isSwap || id === WEAPON_SWAP) return true;
               return !instant || includeInstantsPref;
             })
-            .reduce((prev, cur) => {
+            .reduce((prev: skillSequence, cur) => {
               const previous = prev.at(-1);
               if (cur.data.autoAttack && previous?.data.autoAttack) {
                 previous.count += 1;
@@ -227,7 +227,7 @@ function App() {
                 prev.push(cur);
               }
               return prev;
-            }, [] as skillSequence),
+            }, []),
         );
 
         // eslint-disable-next-line no-console
