@@ -199,7 +199,6 @@ function App() {
           },
           [[]],
         );
-        // .filter((skillSequence) => skillSequence.length);
 
         const rotation = skillSequences.map((skillSequence, i) => ({
           label: String(i),
@@ -234,7 +233,6 @@ function App() {
           label: String(i),
           skillSequence,
         }));
-        // .filter(({ skillSequence }) => skillSequence.length);
 
         const serializedRotation = rotationCombined
           .map(
