@@ -47,6 +47,7 @@ export type skillTypeDictionary = Record<number, skillTypeDictionaryEntry>;
  */
 export interface generatedSkillCast {
   id: number;
+  noDataFallbackString?: string;
   data?: skillTypeDictionaryEntry;
   castTime?: number;
   instant?: boolean;

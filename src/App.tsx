@@ -175,6 +175,7 @@ function App() {
 
         const skillCasts: skillSequence = validRawSkillCasts.map(({ id, ...rest }) => ({
           id,
+          noDataFallbackString: String(id),
           ...rest,
           data: skillTypeDictionary[id],
           count: 1,
@@ -287,17 +288,15 @@ function App() {
 
             const name = splitString.at(-1)?.trim();
 
-            // if the user's string doesn't match, just use it as the ID
-            const fallback = [str, undefined] as const;
-
-            const [idString, data] =
-              Object.entries(skillDictionary).find(([_, { shortName }]) => shortName === name) ??
-              fallback;
+            const [idString, data] = Object.entries(skillDictionary).find(
+              ([_, { shortName }]) => shortName === name,
+            ) ?? [undefined, undefined];
 
             // apparently gw2-ui fails if you give it a string ID... only if it has overrides
             const id = Number(idString);
 
-            const result: generatedSkillCast = { id, data, count };
+            // if the user's string doesn't match, id is NaN and noDataFallbackString is their string
+            const result: generatedSkillCast = { id, noDataFallbackString: str, data, count };
             return result;
           });
 
@@ -330,8 +329,10 @@ function App() {
 
   const formatData = (format: rotationFormat) =>
     parsedTextBoxRotation.map(({ label, skillSequence }) => {
-      const formattedData = skillSequence.map(({ id, data, count }) => {
-        const { isSwap, idsSet } = data ?? { isSwap: false, idsSet: new Set([id]) };
+      const formattedData = skillSequence.map(({ id, noDataFallbackString, data, count }) => {
+        if (!data) return `1. ${noDataFallbackString}`;
+
+        const { isSwap, idsSet } = data;
         if (isSwap || id === WEAPON_SWAP) return format.weaponSwap();
 
         const ids = [...idsSet];
