@@ -67,6 +67,7 @@ export const outputTextBox = style(
     outline: '1px solid grey',
     overflow: 'scroll',
     userSelect: 'all',
+    whiteSpace: 'pre-wrap',
   },
   'outputTextBox',
 );
