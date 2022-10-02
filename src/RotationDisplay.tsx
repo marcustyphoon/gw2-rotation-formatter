@@ -34,7 +34,7 @@ function RotationSkill({
   splitAutoChains,
   showInstantsAsInstant,
 }: RotationSkillProps) {
-  const { idsSet, isSwap, autoAttack, instant } = data ?? {
+  const { idsSet, autoAttack, instant } = data ?? {
     idsSet: new Set([id]),
     isSwap: false,
     autoAttack: false,
