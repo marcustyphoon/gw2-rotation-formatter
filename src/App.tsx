@@ -474,7 +474,7 @@ function App() {
             </button>
             <div>status: {status}</div>
           </div>
-          <RotationDisplay style={{ minHeight: '500px' }} rotation={rotationUncombined} />
+          <RotationDisplay rotation={rotationUncombined} />
         </div>
         <div className={exportedSection}>
           <div className={verticalFlexContainer}>

@@ -40,7 +40,13 @@ globalStyle(`${horizontalFlexContainer} > *`, {
   minWidth: 0,
 });
 
-export const importedSection = style({}, 'importedSection');
+export const importedSection = style(
+  {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  'importedRotation',
+);
 
 export const exportedSection = style(
   {

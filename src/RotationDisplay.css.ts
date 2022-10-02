@@ -6,6 +6,7 @@ const rowHeight = '1.8em';
 
 export const container = style(
   {
+    flex: 1,
     backgroundColor: 'rgba(128, 128, 128, 0.1)',
     borderRadius: '0.5em',
     padding: '0.5em',
