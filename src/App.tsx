@@ -151,9 +151,7 @@ function App() {
           }
 
           const hasDuplicateShortName = (nameToTest: string) =>
-            Object.values(skillTypeDictionary).filter(
-              ({ shortName: entryShortName }) => entryShortName === nameToTest,
-            ).length;
+            Object.values(skillTypeDictionary).some((entry) => entry.shortName === nameToTest);
 
           if (hasDuplicateShortName(shortName)) {
             let count = 2;
