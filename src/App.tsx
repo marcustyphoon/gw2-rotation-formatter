@@ -180,27 +180,26 @@ function App() {
           count: 1,
         }));
 
-        const skillSequences: skillSequence[] = skillCasts
-          .reduce(
-            (prev: skillSequence[], cur) => {
-              const pushThis = () => {
-                const previous = prev.at(-1);
-                if (!Array.isArray(previous)) throw new Error('skillSequences reducer error');
-                previous.push(cur);
-              };
-              const endSequence = () => prev.push([]);
+        const skillSequences: skillSequence[] = skillCasts.reduce(
+          (prev: skillSequence[], cur) => {
+            const pushThis = () => {
+              const previous = prev.at(-1);
+              if (!Array.isArray(previous)) throw new Error('skillSequences reducer error');
+              previous.push(cur);
+            };
+            const endSequence = () => prev.push([]);
 
-              if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
-                if (includeSwaps) pushThis();
-                endSequence();
-              } else {
-                pushThis();
-              }
-              return prev;
-            },
-            [[]],
-          )
-          .filter((skillSequence) => skillSequence.length);
+            if (cur.data.isSwap || cur.id === WEAPON_SWAP) {
+              if (includeSwaps) pushThis();
+              endSequence();
+            } else {
+              pushThis();
+            }
+            return prev;
+          },
+          [[]],
+        );
+        // .filter((skillSequence) => skillSequence.length);
 
         const rotation = skillSequences.map((skillSequence, i) => ({
           label: String(i),
@@ -231,12 +230,11 @@ function App() {
         // eslint-disable-next-line no-console
         console.log('skillTypeDictionary', skillTypeDictionary);
 
-        const rotationCombined = combinedSkillSequences
-          .map((skillSequence, i) => ({
-            label: String(i),
-            skillSequence,
-          }))
-          .filter(({ skillSequence }) => skillSequence.length);
+        const rotationCombined = combinedSkillSequences.map((skillSequence, i) => ({
+          label: String(i),
+          skillSequence,
+        }));
+        // .filter(({ skillSequence }) => skillSequence.length);
 
         const serializedRotation = rotationCombined
           .map(
