@@ -2,7 +2,8 @@ import { globalStyle, style } from '@vanilla-extract/css';
 
 globalStyle('#root', {
   width: '100%',
-  margin: '1.5em',
+  padding: '1.5em',
+  boxSizing: 'border-box',
 });
 
 export const verticalFlexContainer = style(
@@ -36,6 +37,7 @@ export const horizontalFlexContainer = style(
 );
 globalStyle(`${horizontalFlexContainer} > *`, {
   flex: 1,
+  minWidth: 0,
 });
 
 export const importedSection = style({}, 'importedSection');
