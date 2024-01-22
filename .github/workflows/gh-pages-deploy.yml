@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 env:
+  PAGES_PROJECT_NAME: gw2-rotation-formatter
   NODE_VERSION: 18
 
 permissions:
