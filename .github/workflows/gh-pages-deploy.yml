@@ -10,11 +10,6 @@ env:
   PAGES_PROJECT_NAME: gw2-rotation-formatter
   NODE_VERSION: 18
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
 concurrency:
   group: 'pages'
   cancel-in-progress: true
@@ -22,6 +17,14 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      deployments: write
+      pages: write
+      id-token: write
     if: "!contains(github.event.head_commit.message, 'skip ci')"
     timeout-minutes: 10
 
