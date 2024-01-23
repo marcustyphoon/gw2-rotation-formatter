@@ -3,7 +3,7 @@ name: Github Pages Deploy
 on:
   push:
     branches:
-      - deploy
+      - main
   workflow_dispatch:
 
 env:
