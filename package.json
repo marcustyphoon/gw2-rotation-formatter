@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "preinstall": "npx only-allow pnpm"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@discretize/gw2-ui-new": "^0.0.21",
@@ -33,5 +32,9 @@
     "prettier": "^2.7.1",
     "typescript": "^4.6.4",
     "vite": "^3.0.7"
+  },
+  "engines": {
+    "npm": "please-use-pnpm",
+    "yarn": "please-use-pnpm"
   }
 }
