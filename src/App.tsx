@@ -155,7 +155,7 @@ function App() {
           if (autoAttack) {
             shortName = `auto${autoAttackTypeCounter++}`;
           } else {
-            shortName = slot ? `${slot}-` : '';
+            shortName = slotNames && slot ? `${slot}-` : '';
             shortName += name
               .replaceAll(':', '')
               .replaceAll('"', '')
