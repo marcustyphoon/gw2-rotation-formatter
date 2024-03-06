@@ -143,7 +143,7 @@ function App() {
           const isSwap = noSwapsPref ? false : realIsSwap;
 
           const apiSlot: string | undefined = skillApiData?.[id]?.slot;
-          let slot = '';
+          let slot;
           if (apiSlot && apiSlot.startsWith('Weapon_')) {
             slot = apiSlot.replace('Weapon_', '');
           }
@@ -166,8 +166,6 @@ function App() {
               .map((str) => str.substring(0, nameLengthPref))
               .join('');
           }
-
-          console.log(`shortname: "${shortName}"`);
 
           const hasDuplicateShortName = (nameToTest: string) =>
             Object.values(skillTypeDictionary).some((entry) => entry.shortName === nameToTest);
@@ -334,14 +332,16 @@ function App() {
   }
 
   const scFormat: rotationFormat = {
-    label: (label) => `## ${label}`,
+    section: (label, data) => `## ${label}\n\n${data}\n\n`,
+    entry: (text) => `1. ${text}\n`,
     weaponSwap: () => '1. [sc:202][/sc]',
     skill: (id) => `[gw2:${id}:skill]`,
     arrow: () => '-->',
   };
 
   const dtFormat: rotationFormat = {
-    label: (label) => `${label}:`,
+    section: (label, data) => `${label}:\n\n${data}\n\n`,
+    entry: (text) => `1. ${text}\n`,
     weaponSwap: () => '1. swap',
     skill: (id) =>
       skillDictionary[id]?.name
@@ -353,7 +353,7 @@ function App() {
   const formatData = (format: rotationFormat) =>
     parsedTextBoxRotation.map(({ label, skillSequence }) => {
       const formattedData = skillSequence.map(({ id, noDataFallbackString, data, count }) => {
-        if (!data) return `1. ${noDataFallbackString}`;
+        if (!data) return format.entry(String(noDataFallbackString));
 
         const { isSwap, idsSet } = data;
         if (isSwap || id === WEAPON_SWAP) return format.weaponSwap();
@@ -371,7 +371,7 @@ function App() {
               .map((skillId) => format.skill(skillId))
               .join(` ${format.arrow()} `);
             const chainAutoCountStr = chainAutoCount > 1 ? `${chainAutoCount}x ` : '';
-            result.push(`1. ${chainAutoCountStr}${allChainSkillsStr}`);
+            result.push(format.entry(`${chainAutoCountStr}${allChainSkillsStr}`));
           }
 
           if (nonChainAutoCount) {
@@ -379,21 +379,69 @@ function App() {
               .slice(0, nonChainAutoCount)
               .map((skillId) => format.skill(skillId))
               .join(` ${format.arrow()} `);
-            result.push(`1. ${allChainSkillsStr}`);
+            result.push(format.entry(allChainSkillsStr));
           }
 
-          return result.join('\n');
+          return result.join('');
         }
 
         const countStr = count > 1 ? `${count}x ` : '';
-        return `1. ${countStr}${format.skill(id)}`;
+        return format.entry(`${countStr}${format.skill(id)}`);
       });
 
-      return format.label(label) + '\n\n' + formattedData.join('\n') + '\n\n';
+      return format.section(label, formattedData.join(''));
+    });
+
+  const textFormat: rotationFormat = {
+    section: (label, data) => `**${label}:** ${data}\n`,
+    entry: (text) => `${text} `,
+    weaponSwap: () => '',
+    skill: (id) =>
+      skillDictionary[id]?.slot === '1'
+        ? '·'
+        : skillDictionary[id]?.slot ??
+          skillDictionary[id]?.shortName ??
+          skillDictionary[id]?.name ??
+          String(id),
+    arrow: () => '-',
+  };
+
+  const formatDataPlain = (format: rotationFormat) =>
+    parsedTextBoxRotation.map(({ label, skillSequence }) => {
+      const formattedData = skillSequence.map(({ id, noDataFallbackString, data, count }) => {
+        if (!data) return format.entry(String(noDataFallbackString));
+
+        const { isSwap, idsSet } = data;
+        if (isSwap || id === WEAPON_SWAP) return format.weaponSwap();
+
+        const ids = [...idsSet];
+
+        if (ids.length > 1) {
+          const nonChainAutoCount = count % ids.length;
+          const chainAutoCount = Math.floor(count / ids.length);
+
+          const result: string[] = [];
+
+          if (chainAutoCount) {
+            result.push(format.entry('—'.repeat(chainAutoCount).trim()));
+          }
+
+          if (nonChainAutoCount) {
+            result.push('·'.repeat(nonChainAutoCount));
+          }
+
+          return result.join('');
+        }
+
+        return format.entry(format.skill(id).repeat(count));
+      });
+
+      return format.section(label, formattedData.join(''));
     });
 
   const snowCrowsOutput = formatData(scFormat);
   const discretizeOutput = formatData(dtFormat);
+  const textOutput = formatDataPlain(textFormat);
 
   return (
     <div className={verticalFlexContainer}>
@@ -560,6 +608,10 @@ function App() {
         <div>
           Discretize website style (WIP):
           <pre className={outputTextBox}>{discretizeOutput}</pre>
+        </div>
+        <div>
+          Plain text style:
+          <pre className={outputTextBox}>{textOutput}</pre>
         </div>
       </div>
     </div>

@@ -77,7 +77,8 @@ export type rotation = rotationSkillSequence[];
  * used for text output formatting
  */
 export interface rotationFormat {
-  label: (label: string) => string;
+  section: (label: string, data: string) => string;
+  entry: (label: string) => string;
   weaponSwap: () => string;
   skill: (id: number) => string;
   arrow: () => string;
