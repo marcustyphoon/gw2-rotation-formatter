@@ -39,6 +39,7 @@ export interface skillTypeDictionaryEntry {
   autoAttack: boolean;
   instant: boolean;
   shortName: string;
+  slot?: string;
 }
 export type skillTypeDictionary = Record<number, skillTypeDictionaryEntry>;
 

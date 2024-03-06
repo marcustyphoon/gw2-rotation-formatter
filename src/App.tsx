@@ -28,6 +28,7 @@ import type {
   skillTypeDictionary,
   skillTypeDictionaryEntry,
 } from './types';
+import { getSkillData } from './api';
 
 const skillBlacklist = [
   9292, // air
@@ -45,6 +46,7 @@ function App() {
   const [dpsReportData, setDpsReportData] = useState<dpsReportData | undefined>(undefined);
 
   const [nameLengthPref, setNameLengthPref] = useState<number>(DEFAULT_NAME_LENGTH_PREF);
+  const [slotNames, setSlotNames] = useState<boolean>(false);
   const [includeSwaps, setIncludeSwapsPref] = useState<boolean>(true);
   const [includeInstantsPref, setIncludeInstantsPref] = useState<boolean>(false);
   const [includeCancelledPref, setIncludeCancelledPref] = useState<boolean>(true);
@@ -87,7 +89,9 @@ function App() {
   }, [url]);
 
   useEffect(() => {
-    if (dpsReportData) {
+    async function process() {
+      if (!dpsReportData) return;
+
       try {
         const playerData = dpsReportData.players.find(
           (player) => player.name === dpsReportData.recordedBy,
@@ -125,6 +129,9 @@ function App() {
           .filter(({ id }) => skillBlacklist.includes(id) === false)
           .sort((a, b) => a.castTime - b.castTime);
 
+        const skillIds = [...new Set(validRawSkillCasts.map(({ id }) => id))];
+        const skillApiData = await getSkillData(skillIds);
+
         const skillTypeDictionary: Record<number, skillTypeDictionaryEntry> = {};
         let autoAttackTypeCounter = 1;
         validRawSkillCasts.forEach(({ id, instant }) => {
@@ -135,11 +142,21 @@ function App() {
 
           const isSwap = noSwapsPref ? false : realIsSwap;
 
+          const apiSlot: string | undefined = skillApiData?.[id]?.slot;
+          let slot = '';
+          if (apiSlot && apiSlot.startsWith('Weapon_')) {
+            slot = apiSlot.replace('Weapon_', '');
+          }
+          if (apiSlot && apiSlot.startsWith('Profession_')) {
+            slot = 'f' + apiSlot.replace('Profession_', '');
+          }
+
           let shortName = '???';
           if (autoAttack) {
             shortName = `auto${autoAttackTypeCounter++}`;
           } else {
-            shortName = name
+            shortName = slot ? `${slot}-` : '';
+            shortName += name
               .replaceAll(':', '')
               .replaceAll('"', '')
               .replaceAll("'", '')
@@ -149,6 +166,8 @@ function App() {
               .map((str) => str.substring(0, nameLengthPref))
               .join('');
           }
+
+          console.log(`shortname: "${shortName}"`);
 
           const hasDuplicateShortName = (nameToTest: string) =>
             Object.values(skillTypeDictionary).some((entry) => entry.shortName === nameToTest);
@@ -169,6 +188,7 @@ function App() {
             autoAttack,
             instant,
             shortName,
+            slot,
           };
         });
         setSkillDictionary(skillTypeDictionary);
@@ -254,6 +274,8 @@ function App() {
         setStatus(String(e));
       }
     }
+
+    process();
   }, [
     dpsReportData,
     includeCancelledPref,
@@ -261,6 +283,7 @@ function App() {
     includeSwaps,
     nameLengthPref,
     noSwapsPref,
+    slotNames,
   ]);
 
   let parsedTextBoxRotation: generatedRotation = [];
@@ -399,6 +422,16 @@ function App() {
           />
         </label>
         <label>
+          include skill slot locations in names:{' '}
+          <input
+            type="checkbox"
+            checked={slotNames}
+            onChange={(e) => {
+              setSlotNames(e.target.checked);
+            }}
+          />
+        </label>
+        <label>
           include weapon swaps as skills:{' '}
           <input
             type="checkbox"
@@ -490,7 +523,6 @@ function App() {
           <div className={shorthandBlurb}>
             <b>regular skills shorthand: </b>
             <div>
-              -{' '}
               {Object.values(skillDictionary)
                 .filter(({ instant }) => !instant)
                 .map(({ shortName }) => shortName)
@@ -500,7 +532,6 @@ function App() {
           <div className={shorthandBlurb}>
             <b>instant skills shorthand: </b>
             <div>
-              -{' '}
               {Object.values(skillDictionary)
                 .filter(({ instant }) => instant)
                 .map(({ shortName }) => shortName)
