@@ -15,6 +15,7 @@ import {
   shorthandBlurb,
   skillTextBox,
   verticalFlexContainer,
+  disabledSkillTextBox,
 } from './App.css';
 import { WEAPON_SWAP } from './constants';
 import RotationDisplay from './RotationDisplay';
@@ -57,6 +58,7 @@ function App() {
   const [rotationUncombined, setRotationUncombined] = useState<rotation>([]);
   const [serializedLogRotation, setSerializedLogRotation] = useState<string>('');
 
+  const [disabledSkillText, setDisabledSkillText] = useState('');
   const [textBox, setTextBox] = useState('');
 
   useEffect(() => {
@@ -205,13 +207,21 @@ function App() {
         });
         setSkillDictionary(skillTypeDictionary);
 
-        const skillCasts: skillSequence = validRawSkillCasts.map(({ id, ...rest }) => ({
-          id,
-          noDataFallbackString: String(id),
-          ...rest,
-          data: skillTypeDictionary[id],
-          count: 1,
-        }));
+        const disabledSkills = disabledSkillText
+          .replace(',', ' ')
+          .split(' ')
+          .map((substring) => substring.trim())
+          .filter(Boolean);
+
+        const skillCasts: skillSequence = validRawSkillCasts
+          .filter(({ id }) => !disabledSkills.includes(skillTypeDictionary[id]?.shortName))
+          .map(({ id, ...rest }) => ({
+            id,
+            noDataFallbackString: String(id),
+            ...rest,
+            data: skillTypeDictionary[id],
+            count: 1,
+          }));
 
         const skillSequences: skillSequence[] = skillCasts.reduce(
           (prev: skillSequence[], cur) => {
@@ -289,6 +299,7 @@ function App() {
 
     process();
   }, [
+    disabledSkillText,
     dpsReportData,
     includeCancelledPref,
     includeInstantsPref,
@@ -568,19 +579,10 @@ function App() {
           </div>
           <RotationDisplay rotation={rotationUncombined} />
         </div>
+
         <div className={exportedSection}>
           <div className={verticalFlexContainer}>
-            <h3>Edit Rotation</h3>
-            <label>
-              copy imported rotation to editor:
-              <button
-                id="copybutton"
-                type="button"
-                onClick={() => setTextBox(serializedLogRotation)}
-              >
-                click here!
-              </button>
-            </label>
+            <h3>Imported Skills</h3>
           </div>
           <div className={shorthandBlurb}>
             <b>regular skills shorthand: </b>
@@ -599,6 +601,31 @@ function App() {
                 .map(({ shortName }) => shortName)
                 .join(', ') || <em>none!</em>}
             </div>
+          </div>
+          <div className={shorthandBlurb}>
+            <b>exclude skills: </b>
+          </div>
+          <textarea
+            value={disabledSkillText}
+            onChange={(e) => setDisabledSkillText(e.target.value)}
+            className={disabledSkillTextBox}
+            autoCorrect="off"
+          />
+
+          <div className={verticalFlexContainer}>
+            <h3>Edit Rotation</h3>
+          </div>
+          <div className={verticalFlexContainer}>
+            <label>
+              copy imported rotation to editor:
+              <button
+                id="copybutton"
+                type="button"
+                onClick={() => setTextBox(serializedLogRotation)}
+              >
+                click here!
+              </button>
+            </label>
           </div>
           <textarea
             value={textBox}

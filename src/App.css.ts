@@ -67,6 +67,15 @@ export const skillTextBox = style(
   'skillTextBox',
 );
 
+export const disabledSkillTextBox = style(
+  {
+    resize: 'vertical',
+    height: '1em',
+    margin: '0.5em',
+  },
+  'skillTextBox',
+);
+
 export const outputTextBox = style(
   {
     padding: '0.5em',
