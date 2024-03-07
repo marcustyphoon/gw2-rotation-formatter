@@ -95,9 +95,10 @@ function App() {
       if (!dpsReportData) return;
 
       try {
-        const playerData = dpsReportData.players.find(
-          (player) => player.name === dpsReportData.recordedBy,
-        );
+        const playerData =
+          dpsReportData.players.length > 1
+            ? dpsReportData.players.find((player) => player.name === dpsReportData.recordedBy)
+            : dpsReportData.players[0];
         if (!playerData) {
           setStatus('no player data!');
           return;
