@@ -433,7 +433,7 @@ function App() {
     weaponSwap: () => '',
     skill: (id) =>
       skillDictionary[id]?.slot === '1'
-        ? '·'
+        ? '‧'
         : skillDictionary[id]?.slot ??
           skillDictionary[id]?.shortName ??
           skillDictionary[id]?.name ??
@@ -458,11 +458,11 @@ function App() {
           const result: string[] = [];
 
           if (chainAutoCount) {
-            result.push(format.entry('—'.repeat(chainAutoCount).trim()));
+            result.push(format.entry('—'.repeat(chainAutoCount)));
           }
 
           if (nonChainAutoCount) {
-            result.push('·'.repeat(nonChainAutoCount));
+            result.push('‧'.repeat(nonChainAutoCount));
           }
 
           return result.join('');
