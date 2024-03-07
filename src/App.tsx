@@ -105,6 +105,9 @@ function App() {
 
         const eiSkillMap = dpsReportData.skillMap;
 
+        // eslint-disable-next-line no-console
+        console.log('eiSkillMap', eiSkillMap);
+
         const validRawSkillCasts = eiSkillDataEntries
           .flatMap(({ id, skills }) => {
             return skills.map(({ castTime, duration, timeGained }) => {
@@ -132,13 +135,24 @@ function App() {
         const skillIds = [...new Set(validRawSkillCasts.map(({ id }) => id))];
         const skillApiData = await getSkillData(skillIds);
 
+        // eslint-disable-next-line no-console
+        console.log('skillApiData', skillApiData);
+
         const skillTypeDictionary: Record<number, skillTypeDictionaryEntry> = {};
         let autoAttackTypeCounter = 1;
         validRawSkillCasts.forEach(({ id, instant }) => {
           if (skillTypeDictionary[id]) return;
 
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { name, autoAttack, isSwap: realIsSwap, canCrit, icon } = eiSkillMap[`s${id}`];
+          const {
+            name: eiName,
+            autoAttack,
+            isSwap: realIsSwap,
+            canCrit,
+            icon,
+          } = eiSkillMap[`s${id}`];
+
+          const name: string = skillApiData?.[id]?.name ?? eiName;
 
           const isSwap = noSwapsPref ? false : realIsSwap;
 
