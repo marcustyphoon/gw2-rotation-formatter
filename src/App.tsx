@@ -429,7 +429,7 @@ function App() {
 
   const textFormat: rotationFormat = {
     section: (label, data) => `**${label}:** ${data}\n`,
-    entry: (text) => `${text} `,
+    entry: (text) => `${text}  `,
     weaponSwap: () => '',
     skill: (id) =>
       skillDictionary[id]?.slot === '1'
