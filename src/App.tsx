@@ -283,7 +283,7 @@ function App() {
               .filter((type) => type !== 'None')
               .filter(Boolean)
               .map((type) => type.slice(0, 4))
-              .join('/') + String(i),
+              .join('/') || String(i),
           skillSequence,
         }));
 
