@@ -42,7 +42,7 @@ globalStyle(`${blockSkill} > *`, {
   display: 'flex',
 });
 
-export const rowLabel = style({ minWidth: '2.5ch' }, 'rowLabel');
+export const rowLabel = style({ minWidth: '2.5ch', fontSize: '1.2rem' }, 'rowLabel');
 
 export const cancelledSkill = style({}, 'cancelledSkill');
 globalStyle(`${cancelledSkill} > *`, {

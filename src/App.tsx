@@ -244,7 +244,12 @@ function App() {
         );
 
         const rotation = skillSequences.map((skillSequence, i) => ({
-          label: String(i),
+          label:
+            [...new Set(skillSequence.map(({ id }) => skillApiData[id]?.weapon_type))]
+              .filter((type) => type !== 'None')
+              .filter(Boolean)
+              .map((type) => type.slice(0, 4))
+              .join('/') + String(i),
           skillSequence,
         }));
 
@@ -273,7 +278,12 @@ function App() {
         console.log('skillTypeDictionary', skillTypeDictionary);
 
         const rotationCombined = combinedSkillSequences.map((skillSequence, i) => ({
-          label: String(i),
+          label:
+            [...new Set(skillSequence.map(({ id }) => skillApiData[id]?.weapon_type))]
+              .filter((type) => type !== 'None')
+              .filter(Boolean)
+              .map((type) => type.slice(0, 4))
+              .join('/') + String(i),
           skillSequence,
         }));
 
