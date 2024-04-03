@@ -33,7 +33,7 @@
     "eslint-plugin-react-hooks": "^4.3.0",
     "prettier": "^2.7.1",
     "typescript": "^4.6.4",
-    "vite": "^3.0.7"
+    "vite": "^3.2.10"
   },
   "engines": {
     "npm": "please-use-pnpm",
