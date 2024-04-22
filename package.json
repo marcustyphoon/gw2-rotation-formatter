@@ -35,6 +35,7 @@
     "typescript": "^5.4.3",
     "vite": "^5.2.8"
   },
+  "packageManager": "pnpm@8.15.7+sha256.50783dd0fa303852de2dd1557cd4b9f07cb5b018154a6e76d0f40635d6cee019",
   "engines": {
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm"
