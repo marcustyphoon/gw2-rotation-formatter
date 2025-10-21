@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^4.4.1",
+    "@vitejs/plugin-react": "^5.0.4",
     "eslint": "^8.57.1",
     "eslint-config-airbnb": "19.0.4",
     "eslint-config-prettier": "^10.1.8",
