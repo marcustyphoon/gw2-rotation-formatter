@@ -8,7 +8,7 @@ on:
 
 env:
   PAGES_PROJECT_NAME: gw2-rotation-formatter
-  NODE_VERSION: 18
+  NODE_VERSION: 22
 
 concurrency:
   group: 'pages'
