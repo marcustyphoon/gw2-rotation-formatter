@@ -16,7 +16,7 @@
     "gw2api-client": "^7.8.6",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-error-boundary": "^5.0.0",
+    "react-error-boundary": "^6.1.0",
     "ts-extras": "^0.16.1"
   },
   "devDependencies": {
