@@ -19,7 +19,7 @@ importers:
         version: 1.20.1(babel-plugin-macros@3.1.0)
       '@vanilla-extract/vite-plugin':
         specifier: ^5.2.2
-        version: 5.2.2(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(babel-plugin-macros@3.1.0)(esbuild@0.27.7)(lightningcss@1.32.0)(vite@6.4.1(@types/node@25.5.2)(lightningcss@1.32.0))
+        version: 5.2.2(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(babel-plugin-macros@3.1.0)(esbuild@0.27.7)(lightningcss@1.32.0)(vite@6.4.2(@types/node@25.5.2)(lightningcss@1.32.0))
       gw2api-client:
         specifier: ^7.8.6
         version: 7.8.6
@@ -44,7 +44,7 @@ importers:
         version: 19.2.3(@types/react@19.2.14)
       '@vitejs/plugin-react':
         specifier: ^5.2.0
-        version: 5.2.0(vite@6.4.1(@types/node@25.5.2)(lightningcss@1.32.0))
+        version: 5.2.0(vite@6.4.2(@types/node@25.5.2)(lightningcss@1.32.0))
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
@@ -76,8 +76,8 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
       vite:
-        specifier: ^6.4.1
-        version: 6.4.1(@types/node@25.5.2)(lightningcss@1.32.0)
+        specifier: ^6.4.2
+        version: 6.4.2(@types/node@25.5.2)(lightningcss@1.32.0)
 
 packages:
 
@@ -3005,8 +3005,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  vite@6.4.1:
-    resolution: {integrity: sha512-+Oxm7q9hDoLMyJOYfUYBuHQo+dkAloi33apOPP56pzj+vsdJDzr+j1NISE5pyaAuKL4A3UD34qd0lx5+kfKp2g==}
+  vite@6.4.2:
+    resolution: {integrity: sha512-2N/55r4JDJ4gdrCvGgINMy+HH3iRpNIz8K6SFwVsA+JbQScLiC+clmAxBgwiSPgcG9U15QmvqCGWzMbqda5zGQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
@@ -3045,14 +3045,14 @@ packages:
       yaml:
         optional: true
 
-  vite@8.0.3:
-    resolution: {integrity: sha512-B9ifbFudT1TFhfltfaIPgjo9Z3mDynBTJSUYxTjOQruf/zHH+ezCQKcoqO+h7a9Pw9Nm/OtlXAiGT1axBgwqrQ==}
+  vite@8.0.5:
+    resolution: {integrity: sha512-nmu43Qvq9UopTRfMx2jOYW5l16pb3iDC1JH6yMuPkpVbzK0k+L7dfsEDH4jRgYFmsg0sTAqkojoZgzLMlwHsCQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
       '@types/node': ^20.19.0 || >=22.12.0
       '@vitejs/devtools': ^0.1.0
-      esbuild: ^0.27.0
+      esbuild: ^0.27.0 || ^0.28.0
       jiti: '>=1.21.0'
       less: ^4.0.0
       sass: ^1.70.0
@@ -4550,7 +4550,7 @@ snapshots:
     dependencies:
       '@vanilla-extract/css': 1.20.1(babel-plugin-macros@3.1.0)
       '@vanilla-extract/integration': 8.0.9(babel-plugin-macros@3.1.0)
-      vite: 6.4.1(@types/node@25.5.2)(lightningcss@1.32.0)
+      vite: 6.4.2(@types/node@25.5.2)(lightningcss@1.32.0)
       vite-node: 6.0.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)
     transitivePeerDependencies:
       - '@emnapi/core'
@@ -4605,11 +4605,11 @@ snapshots:
 
   '@vanilla-extract/private@1.0.9': {}
 
-  '@vanilla-extract/vite-plugin@5.2.2(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(babel-plugin-macros@3.1.0)(esbuild@0.27.7)(lightningcss@1.32.0)(vite@6.4.1(@types/node@25.5.2)(lightningcss@1.32.0))':
+  '@vanilla-extract/vite-plugin@5.2.2(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(babel-plugin-macros@3.1.0)(esbuild@0.27.7)(lightningcss@1.32.0)(vite@6.4.2(@types/node@25.5.2)(lightningcss@1.32.0))':
     dependencies:
       '@vanilla-extract/compiler': 0.7.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(babel-plugin-macros@3.1.0)(esbuild@0.27.7)(lightningcss@1.32.0)
       '@vanilla-extract/integration': 8.0.9(babel-plugin-macros@3.1.0)
-      vite: 6.4.1(@types/node@25.5.2)(lightningcss@1.32.0)
+      vite: 6.4.2(@types/node@25.5.2)(lightningcss@1.32.0)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -4629,7 +4629,7 @@ snapshots:
       - tsx
       - yaml
 
-  '@vitejs/plugin-react@5.2.0(vite@6.4.1(@types/node@25.5.2)(lightningcss@1.32.0))':
+  '@vitejs/plugin-react@5.2.0(vite@6.4.2(@types/node@25.5.2)(lightningcss@1.32.0))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.29.0)
@@ -4637,7 +4637,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-rc.3
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 6.4.1(@types/node@25.5.2)(lightningcss@1.32.0)
+      vite: 6.4.2(@types/node@25.5.2)(lightningcss@1.32.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -6434,7 +6434,7 @@ snapshots:
       es-module-lexer: 2.0.0
       obug: 2.1.1
       pathe: 2.0.3
-      vite: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)
+      vite: 8.0.5(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -6451,7 +6451,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite@6.4.1(@types/node@25.5.2)(lightningcss@1.32.0):
+  vite@6.4.2(@types/node@25.5.2)(lightningcss@1.32.0):
     dependencies:
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.4)
@@ -6464,7 +6464,7 @@ snapshots:
       fsevents: 2.3.3
       lightningcss: 1.32.0
 
-  vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7):
+  vite@8.0.5(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
